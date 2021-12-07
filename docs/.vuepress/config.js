@@ -1,6 +1,6 @@
 module.exports = {
 	// base:"/sutinghu/",
-	logo: '/imags/tou.png',
+	logo: './imags/tou.png',
 	title:'suting-Blogs',
 	description:'最便携技术文档',
 	themeConfig : {
