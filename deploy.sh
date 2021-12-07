@@ -5,7 +5,9 @@ set -e
 yarn docs:build
 
 # 进入生成的文件夹，这里是默认的路径，可以自定义
-cd docs/.vuepress/dist
+cd docs
+
+cd .vuepress/dist
 
 # 如果是发布到自定义域名
 # echo 'www.isunbeam.cn' > CNAME
