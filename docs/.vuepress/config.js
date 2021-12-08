@@ -40,6 +40,18 @@ module.exports = {
                         ]
                     }
                 ]
+             },{
+                title:'数据库',
+                collapsable: true,
+                children: [
+                    {
+                        // title: 'collection',
+                        collapsable: false,
+                        children:[ 
+                            ['/collection/sql.md', '数据库常字']
+                        ]
+                    }
+                ]
              }
 		]
 	}
