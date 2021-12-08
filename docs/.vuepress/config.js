@@ -15,20 +15,27 @@ module.exports = {
 		],
 		sidebar: [
 			{
-                // title:'常用命令',
+                title:'命令',
+                collapsable: true,
+                children: [
+                    {
+                        // title: 'collection',
+                        collapsable: false,
+                        children: [
+                            ['/collection/gitml.md', '常用命令'],
+							['/collection/gitml.md', '命令解析']
+                        ]
+                    }
+                ]
+             },{
+                title:'项目',
                 collapsable: true,
                 children: [
                     {
                         //title: 'collection',
                         collapsable: false,
                         children: [
-                            ['/collection/gitml.md', '常用命令']
-                        ]
-                    },{
-                        //title: 'collection',
-                        collapsable: false,
-                        children: [
-                            ['/collection/xm.md', '项目集合']
+                            ['/collection/xm.md', '项目介绍']
                         ]
                     }
                 ]
