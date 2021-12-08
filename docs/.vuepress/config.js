@@ -1,4 +1,5 @@
 module.exports = {
+	
 	// base:"/sutinghu/",
 	logo: './imags/tou.png',
 	title:'suting-Blogs',
