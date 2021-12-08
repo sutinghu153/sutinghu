@@ -2,7 +2,7 @@ module.exports = {
 	// base:"/sutinghu/",
 	logo: './imags/tou.png',
 	title:'suting-Blogs',
-	description:'最便携技术文档',
+	description:'分布式博客云笔记',
 	themeConfig : {
 		backToTop: true,
 		head: [
@@ -15,14 +15,20 @@ module.exports = {
 		],
 		sidebar: [
 			{
-                title:'常用命令',
+                // title:'常用命令',
                 collapsable: true,
                 children: [
                     {
                         //title: 'collection',
                         collapsable: false,
                         children: [
-                            ['/collection/gitml.md', 'git命令']
+                            ['/collection/gitml.md', '常用命令']
+                        ]
+                    },{
+                        //title: 'collection',
+                        collapsable: false,
+                        children: [
+                            ['/collection/xm.md', '项目集合']
                         ]
                     }
                 ]
