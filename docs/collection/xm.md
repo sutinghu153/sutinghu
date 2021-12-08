@@ -58,7 +58,7 @@
 
 > 扫码查阅我的小程序
 
-![xcx](../imags/xcx.png)
+![xcx](E:\personal\sutinghu\docs\.vuepress\public\imags\xcx.png)
 
 ## 02 分布式博客云笔记
 
