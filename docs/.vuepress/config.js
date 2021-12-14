@@ -18,19 +18,6 @@ module.exports = {
 		],
 		sidebar: [
 			{
-                title:'命令',
-                collapsable: true,
-                children: [
-                    {
-                        // title: 'collection',
-                        collapsable: false,
-                        children: [
-                            ['/collection/gitml.md', '常用命令'],
-							['/collection/gitml.md', '命令解析']
-                        ]	
-                    }
-                ]
-             },{
                 title:'项目',
                 collapsable: true,
                 children: [
@@ -52,6 +39,31 @@ module.exports = {
                         children:[ 
                             ['/collection/sql.md', '数据库常字']
                         ]
+                    }
+                ]
+             },{
+                title:'命令',
+                collapsable: true,
+                children: [
+                    {
+                        // title: 'collection',
+                        collapsable: false,
+                        children: [
+                            ['/collection/gitml.md', '常用命令'],
+							['/collection/gitml.md', '命令解析']
+                        ]	
+                    }
+                ]
+             },{
+                title:'工具',
+                collapsable: true,
+                children: [
+                    {
+                        // title: 'collection',
+                        collapsable: false,
+                        children: [
+                            ['/collection/mvn.md', '工具']
+                        ]	
                     }
                 ]
              }
