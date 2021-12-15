@@ -2,14 +2,14 @@
 #set -e
 
 # 生成静态文件
-yarn docs:build
+yarn docs:build
 
 # 进入生成的文件夹，这里是默认的路径，可以自定义
 
 cd docs/.vuepress/dist
 
 # 如果是发布到自定义域名
- echo www.dglgd.com > CNAME
+echo www.dglgd.com > CNAME
 
 git init
 git add -A
