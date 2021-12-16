@@ -103,3 +103,296 @@
 >www.dglgd.com
 >```
 
+## 03 开发一款Maven插件
+
+
+
+<font face="华文宋体" size="3">开发了一款Maven插件</font>
+
+<font face="华文宋体" size="3">入职后，公司提出了“提质增效”的口号，一个衡量质量的标准之一是统计每个开发者增、删、改的代码，并统计最终的行数。</font>
+
+<font face="华文宋体" size="3">Git 提供了很多的命令行，用来查看需要的数据，比如</font>
+
+```bash
+git log --author="sutinghu" --since='2021-09-20' --until='2021-10-22' --pretty=tformat: --numstat | gawk '{ add += $1 ; subs += $2 ; loc += $1 + $2 } END { printf "增加的行数:%s 删除的行数:%s 总行数: %s\n",add,subs,loc }'
+```
+
+<font face="华文宋体" size="3">这种查看的方式，对于习惯命令的开发者是友好的，但是也很麻烦</font>
+
+<font face="华文宋体" size="3">如果能够有一个程序，只要设置好统计的时间，点一下就可以得到结果，那不是更好吗</font>
+
+<font face="华文宋体" size="3">秉着作为一名程序员，要有改变生活方式的理念，我决定开发一个Maven插件，只要点点点就可以实现代码的统计。</font>
+
+<font face="华文宋体" size="3">世界上所有的程序都是为了增删改查，程序里所有的逻辑都是为了处理、转移数据。</font>
+
+<font face="华文宋体" size="3">maven 也不例外，只是它的增删改查的逻辑，与一般的业务实现方式有些区别。</font>
+
+<font face="华文宋体" size="3">即“约定优于配置”，maven通过插件体系与XML配置方式将程序封装在了自己的maven体系中，这个封装后的程序被称为maven插件。</font>
+
+### 动手实现
+
+#### 用Java和Git交互
+
+<font face="华文宋体" size="3">为了获取Git中代码的统计情况，我们需要一个Api来获取maven仓库中代码的提交情况。通过搜索大法，我发现了一个被称为**Jgit**的Api程序包，其核心就是**通过Java程序来实现git的一系统操作**。</font>
+
+#### 用Java实现统计
+
+<font face="华文宋体" size="3">前面通过GitBash统计代码的方式看起来很便携，那么代码里要如何统计呢？Git的提交是一个时间轴，也是一个栈。每次的提交都是一个入栈的过程，而时间就是每个栈元素的标签。</font>
+
+<font face="华文宋体" size="3">所以整个过程可以分为下面的几个步骤</font>
+
+1. 查找所有的提交信息
+2. 过滤掉时间范围外的提交信息
+3. 遍历有效的提交信息
+   1. 查找该提交信息的前一个提交信息
+   2. 对比两次提交信息的差异
+   3. 根据统计需要得出统计数据
+   4. 将所有的结果进行最终的统计
+
+### 核心的代码
+
+#### 获取所有的提交信息
+
+```java
+public void getLogs() throws IOException, GitAPIException {
+
+        Iterable<RevCommit> commits = git.log().all().call();
+
+        List<UserCommitLog> commitLogs = new ArrayList<>();
+
+        for (RevCommit commit : commits) {
+            UserCommitLog userCommitLog  = new UserCommitLog();
+            userCommitLog.setUser(commit.getAuthorIdent().getName());
+            userCommitLog.setCommitDate(commit.getAuthorIdent().getWhen());
+            userCommitLog.setRevCommit(commit);
+            userCommitLog.setShortMessage(commit.getShortMessage());
+            commitLogs.add(userCommitLog);
+        }
+        this.commitLogs  = commitLogs;
+    }
+```
+
+#### 获取仓库
+
+```java
+public void initGit(){
+        try {
+            repository = new FileRepositoryBuilder()
+                    .setGitDir(Paths.get(FileUtils.getDir(), ".git").toFile())
+                    .build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        git = new Git(repository);
+
+        try {
+            branch = git.getRepository().getBranch();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+```
+
+#### 获取用户信息
+
+```java
+ public Map<String, String> getUser(){
+        Map<String, String> map = new HashMap<>();
+        StoredConfig config = git.getRepository().getConfig();
+        String username = config.getString("user", null, "name");
+        String email = config.getString("user", null, "email");
+        map.put("username",username);
+        map.put("email",email);
+        return map;
+    }
+```
+
+#### 获取每次提交的详情
+
+```java
+public static List<DiffEntry> getChangedFileList(RevCommit revCommit, Repository repo) {
+
+        List<DiffEntry> returnDiffs = null;
+
+        try {
+            RevCommit previsouCommit=getPrevHash(revCommit,repo);
+            if(previsouCommit==null) {
+                return null;
+            }
+
+            ObjectId head=revCommit.getTree().getId();
+
+            ObjectId oldHead=previsouCommit.getTree().getId();
+
+            // prepare the two iterators to compute the diff between
+            try (ObjectReader reader = repo.newObjectReader()) {
+                CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
+                oldTreeIter.reset(reader, oldHead);
+                CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
+                newTreeIter.reset(reader, head);
+
+                // finally get the list of changed files
+                try (Git git = new Git(repo)) {
+                    List<DiffEntry> diffs= git.diff()
+                            .setNewTree(newTreeIter)
+                            .setOldTree(oldTreeIter)
+                            .call();
+
+                    returnDiffs=diffs;
+
+                } catch (GitAPIException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+        return returnDiffs;
+    }
+```
+
+#### 获取前一次提交
+
+```java
+public static RevCommit getPrevHash(RevCommit commit, Repository repo)  throws  IOException {
+
+        try (RevWalk walk = new RevWalk(repo)) {
+            // Starting point
+            walk.markStart(commit);
+            int count = 0;
+            for (RevCommit rev : walk) {
+                // got the previous commit.
+                if (count == 1) {
+                    return rev;
+                }
+                count++;
+            }
+            walk.dispose();
+        }
+        //Reached end and no previous commits.
+        return null;
+    }
+```
+
+#### 对差异做统计
+
+```java
+public void countDiff(RevCommit commit,UserCount userCount){
+
+        String versionTag= commit.getName();
+
+        try {
+
+            RevWalk walk = new RevWalk(repository);
+
+            ObjectId versionId=repository.resolve(versionTag);
+
+            RevCommit verCommit=walk.parseCommit(versionId);
+
+            List<DiffEntry> diffFix=getChangedFileList(verCommit,this.repository);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            DiffFormatter df = new DiffFormatter(out);
+
+            df.setRepository(this.repository);
+            int addSize = 0;
+            int subSize = 0;
+            int allsize = 0;
+            for (DiffEntry entry : diffFix) {
+
+                df.format(entry);
+
+                FileHeader fileHeader = df.toFileHeader(entry);
+                List<HunkHeader> hunks = (List<HunkHeader>) fileHeader.getHunks();
+
+
+                for(HunkHeader hunkHeader:hunks){
+                    EditList editList = hunkHeader.toEditList();
+                    for(Edit edit : editList){
+                        subSize += edit.getEndA()-edit.getBeginA();
+                        addSize += edit.getEndB()-edit.getBeginB();
+                        allsize += edit.getEndA()-edit.getBeginA() + edit.getEndB()-edit.getBeginB();
+                    }
+                }
+                out.reset();
+            }
+
+            userCount.setAddSize(addSize);
+            userCount.setSubSize(subSize);
+            userCount.setAllSize(allsize);
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+```
+
+### 使用
+
+最后，如果你想使用这个插件，只需要三个步骤
+
+- 将插件程序包放入自己的仓库
+
+```html
+https://github.com/sutinghu153/maven-plugin-gitcodes-count
+```
+
+>以上是程序包的下载路径，只需要sutinghu.zip即可
+
+- 在项目的顶层POM文件中进行配置
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-plugin-plugin</artifactId>
+            <version>3.5.2</version>
+        </plugin>
+        <plugin>
+            <!-- 指定maven编译的jdk版本 -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
+            <configuration>
+                <verbose>true</verbose>
+                <fork>true</fork>
+                <!--你的jdk地址-->
+                <executable>C:/Program Files/Java/jdk1.8.0_20/bin/javac</executable>
+                <source>8</source>
+                <target>8</target>
+            </configuration>
+        </plugin>
+
+        <plugin>
+            <groupId>sutinghu.tools</groupId>
+            <artifactId>countcodes-maven-plugin</artifactId>
+            <version>1.0.0</version>
+            <configuration>
+                <type>me</type>
+                <startTime>2020-02-01</startTime>
+                <endTime>2021-12-01</endTime>
+            </configuration>
+        </plugin>
+
+    </plugins>
+</build>
+```
+
+>参数说明
+>
+>```type``` 用来选择查看哪些用户的代码统计结果，默认为 me
+>
+>-  me 仅自己
+>- all 所有用户
+>
+>```startTime``` 用来设置开始时间
+>
+>```endTime``` 用来设置结束时间
+
+- 在IDEA中的maven插件管理工具中运行 ```count codes:count```
+
