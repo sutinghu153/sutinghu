@@ -71,3 +71,342 @@ Kafka通过多副本机制实现了故障的自动转移，当Kafka集群中的�
 
 ![image-20211223110415128](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\image-20211223110415128.png)
 
+#### 消费定位模式避免消息丢失
+
+Kafka的消费端具备一定的容灾能力，Consumer使用pull拉模式从服务端拉取消息，并且将消息消费的具体位置进行保存，当消费者宕机后可以根据之前保存的消费位置重新拉取需要的消息。
+
+#### 分区中的副本管理机制
+
+- AR :  分区中的所有副本
+- ISR : 所有与leader副本保持一定程度同步的副本
+- OSR : 与leader副本同步滞后过多的副本组成的集合
+- AR = ISR + OSR
+- 当某个副本在ISR中滞后的消息太多的时候，leader副本会将其从ISR中剔除
+- 如果OSR中某个副本的滞后状态符合ISR集合的要求，则会被归于ISR集合中
+- HW : 高水位，标记了一个特定的消息偏移量，消费者只能拉取到该标记之前的消息
+- LEO : 当前日志分区中最后一条消息的标记值+1，即用来表示待写入消息的标记
+
+![image-20211223113436179](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\image-20211223113436179.png)
+
+## 安装和配置
+
+ZooKeeper 和 Kafka 是运行在JDK上的应用程序，因此，需要部署JDK环境
+
+### 安装JDK
+
+```
+根据网上教程安装配置
+```
+
+### 安装ZooKeeper
+
+#### 安装
+
+```xml
+01 下载
+wget https://dlcdn.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3.tar.gz
+
+02 安装
+tar -zxvf apache-zookeeper-3.6.3.tar.gz
+
+03 配置
+cd apache-zookeeper-3.6.3/
+cd conf/
+cp zoo_sample.cfg zoo.cfg
+cd ..
+cd bin/
+
+04 启动
+sh zkServer.sh start
+
+05 启动客户端
+sh zkCli.sh
+```
+
+#### 报错
+
+**具体描述**
+
+```
+Starting zookeeper ... FAILED TO START
+```
+
+**解决方案**
+
+```
+建议使用低版本
+https://dlcdn.apache.org/zookeeper/zookeeper-3.5.9/apache-zookeeper-3.5.9-bin.tar.gz
+```
+
+### 安装Kafka
+
+```
+01 下载
+wget https://dlcdn.apache.org/kafka/2.6.3/kafka-2.6.3-src.tgz
+
+02 解压
+tar -zxvf https://dlcdn.apache.org/kafka/2.6.3/kafka-2.6.3-src.tgz
+
+03 安装 
+
+```
+
+## 基本使用
+
+### 创建主题 
+
+```kafka-topics.sh```  用来创建主题的脚本命令
+
+|         命令         |               作用               |
+| :------------------: | :------------------------------: |
+|     --zookeeper      | 指定Kafka链接的zookeeper服务地址 |
+|       --topic        |      指定要创建的主题的名称      |
+| --replication-factor |           指定副本因子           |
+|     --partitions     |           指定分区个数           |
+|       --create       |             创建主题             |
+|      --describe      |       主题的更多的具体信息       |
+
+### 发送消息
+
+```kafka-console-consumer.sh``` 消费者脚本命令
+
+```kafka-console-producer.sh``` 生产者脚本命令
+
+|        命令        |          脚本           |
+| :----------------: | :---------------------: |
+| --bootstrap-server | 指定连接的Kafka集群地址 |
+|      --topic       |  指定消费者订阅的主题   |
+|   --broker-list    |    指定Kafka集群地址    |
+|      --topic       | 指定了发送消息时的主题  |
+
+## Producer 生产者
+
+负责向Kafka发送消息的应用程序。
+
+### 基本生产流程
+
+1. 配置生产者客户端参数并创建相应的生产者实例
+2. 构建待发送的消息
+3. 发送消息
+4. 关闭生产者实例
+
+### 使用Java客户端的生产者
+
+```java
+public class ProducerFastStart {
+    public static final String brokerList = "localhost:9092";
+    public static final String topic = "topic-demo";
+
+    public static void main(String[] args) {
+        Properties properties = new Properties();
+        properties.put("key.serializer",
+                "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("value.serializer",
+                "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("bootstrap.servers", brokerList);
+
+
+        KafkaProducer<String, String> producer =
+                new KafkaProducer<>(properties);
+        ProducerRecord<String, String> record =
+                new ProducerRecord<>(topic, "hello, Kafka!");
+        try {
+            producer.send(record);
+//            producer.send(record).get();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        producer.close();
+    }
+}
+```
+
+```java
+关于：ProducerRecord
+public class ProducerRecord<K, V> {
+    // 主题
+    private final String topic;
+    // 分区号
+    private final Integer partition;
+    // 消息头部
+    private final Headers headers;
+    // 键——让消息进行二次归类
+    private final K key;
+    // 值
+    private final V value;
+    // 消息的时间戳 CreateTime和LogAppendTime两种类型，前者表示消息创建的时间，后者表示消息追加到日志文件的时间
+    private final Long timestamp;
+    }
+```
+
+### 发送消息的三种方式
+
+#### 发后即忘 fire-and-forget
+
+它只管往Kafka中发送消息而并不关心消息是否正确到达。 容易造成数据的丢失。
+
+性能最高，可靠性最差。
+
+```
+producer.send(record);
+```
+
+#### 同步 sync
+
+```
+producer.send(record).get();
+```
+
+#### 异步 async
+
+```
+ producer.send(record, new Callback() {
+@Override
+public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+}
+});
+```
+
+### 使用Java客户端的消费者
+
+```java
+public class ConsumerFastStart {
+    public static final String brokerList = "localhost:9092";
+    public static final String topic = "topic-demo";
+    public static final String groupId = "group.demo";
+
+    public static void main(String[] args) {
+        Properties properties = new Properties();
+        properties.put("key.deserializer",
+                "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put("value.deserializer",
+                "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put("bootstrap.servers", brokerList);
+        properties.put("group.id", groupId);
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+        consumer.subscribe(Collections.singletonList(topic));
+
+        while (true) {
+            ConsumerRecords<String, String> records =
+                    consumer.poll(Duration.ofMillis(1000));
+            for (ConsumerRecord<String, String> record : records) {
+                System.out.println(record.value());
+            }
+        }
+    }
+}
+```
+
+### 数据传输的序列化
+
+Kafka的消息生产和消费及发送都需要通过serializer 序列化器将数据序列为byte[] 来进行数据的传输。
+
+用来对传输对象进行序列化的方法一般是实现Serializer序列化器。如String的序列化
+
+```java
+public class StringSerializer implements Serializer<String> {
+    private String encoding = "UTF8";
+
+    @Override
+    public void configure(Map<String, ?> configs, boolean isKey) {
+        String propertyName = isKey ? "key.serializer.encoding" : "value.serializer.encoding";
+        Object encodingValue = configs.get(propertyName);
+        if (encodingValue == null){
+
+            encodingValue = configs.get("serializer.encoding");
+        }
+        if (encodingValue instanceof String){
+
+            encoding = (String) encodingValue;
+        }
+    }
+
+    @Override
+    public byte[] serialize(String topic, String data) {
+        try {
+            if (data == null){
+
+                return null;
+            }
+            else{
+
+                return data.getBytes(encoding);
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new SerializationException("Error when serializing string to byte[] due to unsupported encoding " + encoding);
+        }
+    }
+
+    @Override
+    public void close() {
+        // nothing to do
+    }
+}
+
+```
+
+- configure() 方法用来配置当前类
+- serialize() 方法用来执行序列化操作
+- close() 方法用来关闭当前的序列化器
+
+生产者使用的序列化器和消费者使用的反序列化器需要一一对应。
+
+序列化器在使用的时候，将参数 ```value.serializer```设置为序列化器的全限定名。
+
+```java
+Properties properties = new Properties();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class.getName());
+```
+
+### 使用分区器
+
+如果在发送消息的时候使用的	ProducerRecord 构造器传了指定的分区号，即下
+
+```Java
+public ProducerRecord(String topic, Integer partition, K key, V value) {
+        this(topic, partition, (Long)null, key, value, (Iterable)null);
+    }
+```
+
+则不需要分区器。
+
+分区器的作用在于控制消息的自动拓展机制、提升容灾能力且避免消息丢失。其作用是为消息分配分区。
+
+使用分区器，需要实现Partitioner分区接口。
+
+```java
+public class DemoPartitioner implements Partitioner {
+    private final AtomicInteger counter = new AtomicInteger(0);
+
+    @Override
+    public int partition(String topic, Object key, byte[] keyBytes,
+                         Object value, byte[] valueBytes, Cluster cluster) {
+        
+    }
+
+    @Override
+    public void close() {
+    }
+
+    @Override
+    public void configure(Map<String, ?> configs) {
+    }
+}
+```
+
+- partition() 方法用来计算分区号 
+  - topic 主题
+  - key  序列化后的键
+  - value 序列化后的值
+  - Cluster 集群的元数据信息
+- configure() 方法用来获取配置信息及数据初始化
+
+使用分区器的方式
+
+```java
+props.put (ProducerConfig.PARTITIONER_CLASS_CONFIG,
+DemoPartitioner.class.getName() ) ;
+```
+
