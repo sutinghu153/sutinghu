@@ -14,7 +14,8 @@ module.exports = {
 			{text:'JavaGuide',link:'https://javaguide.cn/'},
 			{text:'code-nav',link:'https://home.code-nav.cn/'},
 			{text:'github',link:'https://github.com/sutinghu153'},
-			{text:'WK听潮',link:'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA5ODI3NTI1OA==&scene=124#wechat_redirect'}
+			{text:'WK听潮',link:'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA5ODI3NTI1OA==&scene=124#wechat_redirect'},
+			{text:'book',link:'https://github.com/itdevbooks/'}
 		],
 		sidebar: [
 			{
@@ -62,7 +63,8 @@ module.exports = {
                         // title: 'collection',
                         collapsable: false,
                         children: [
-                            ['/collection/mvn.md', '工具']
+                            ['/collection/mvn.md', 'Maven'],
+							['/collection/kafka.md', 'Kafka']
                         ]	
                     }
                 ]
