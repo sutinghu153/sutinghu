@@ -618,7 +618,29 @@ public void resume (Collection<TopicPartition> partitions)
 
 ### 7-2 创建主题详解
 
-不同的场景
+**创建主题**
+
+```shell
+./kafka-topics.sh --create --topic "sutinhu2-topic" --zookeeper localhost:2181 --replication-factor 1 --partitions 1
+```
+
+**查看主题**
+
+```shell
+./kafka-topics.sh --list --zookeeper localhost:2181
+```
+
+**查看主题详细信息**
+
+```shell
+./kafka-topics.sh --describe --zookeeper localhost:2181
+```
+
+**删除主题**
+
+```shell
+ ./kafka-topics.sh --delete --topic "sutinghu2-topic" --zookeeper localhost:2181不同的场景
+```
 
 - 主题的自动创建（auto.create.topics.enable=true）
   - 当生产者向一个尚未创建的主题发送消息时，会自动创建一个主题，该主题分区数为num.partitions 默认为 1 、副本因子为default.replaication.factor默认为1
@@ -630,5 +652,27 @@ public void resume (Collection<TopicPartition> partitions)
 
 ### 7-3 分区副本的分配
 
-生产者的分区分配是指为每条消息指定其所要
+- 生产者的分区分配是指为每条消息指定其所要发往的分区。
+
+- 消费者中的分区分配是指为消费者指定其可以消费消息的分区。
+
+  
+
+  本文中的分区分配是指为集群指定创建主题时的分区副本分配方案，即在哪个broker中创建哪些分区的副本
+
+#### 7-3-1 replica-assignment 参数
+
+1. 指定replica-assignment参数——按照指定的方案进行
+2. 未指定replica-assignment参数——按照内部的逻辑计算分配方案
+
+#### 7-3-2 Kafka-topics 脚本机架信息
+
+使用 Kafka-topics 脚本创建主题时的内部分配逻辑按照机架信息划分为两种策略
+
+1. 指定机架信息
+2. 未指定机架信息
+
+### 7-4 查看主题详解
+
+Kafka-topics.sh 脚本中有5种指令类型：create、list、describe、alter、delete
 
