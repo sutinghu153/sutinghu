@@ -64,7 +64,8 @@ module.exports = {
                         collapsable: false,
                         children: [
                             ['/collection/mvn.md', 'Maven'],
-							['/collection/kafka.md', 'Kafka']
+							['/collection/kafka.md', 'Kafka'],
+							['/collection/ElasticSearch.md', 'ElasticSearch']
                         ]	
                     }
                 ]
