@@ -42,3 +42,6 @@
 
 ```mvn dependency:list``` 通过树的方式查看项目中所有的依赖
 
+https://note.youdao.com/ynoteshare1/index.html?id=8b0c522d0c7da417f184cc640caaa772&type=notebook
+
+https://www.cnblogs.com/limaosheng/p/10029925.html
