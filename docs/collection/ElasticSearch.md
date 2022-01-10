@@ -1,6 +1,6 @@
 <h1 align="center">Elastic-Search</h1>
 
-关于ealstic-search的原理与实践。
+关于ealstic-search的原理与实践。参考：[集群内的原理 | Elasticsearch: 权威指南 | Elastic](https://www.elastic.co/guide/cn/elasticsearch/guide/current/distributed-cluster.html)
 
 ## 01 大数据
 
@@ -177,3 +177,315 @@ ElasticSearch 是面向文档的，意味着它存储整个对象或文档。ela
 
 ES对文档的序列化格式是JSON。
 
+### 4-4 关于索引
+
+存储数据到ES的行为叫索引，因此索引有两个方面的含义
+
+1. **名词**——文档
+
+   一个索引类似于传统关系数据库中的一个库，是一个存储关系型文档的地方。
+
+2. **动词**——保存数据
+
+   索引一个文档就是存储一个文档到一个索引（名词）中以便被检索和查询。
+
+3. **倒排索引**——检索的方式
+
+   关系型数据库通过增加一个索引，比如B-tree索引到指定的列上，以便提升数据检索速度。
+
+   ES中的每一个文档的每一个属性都是被索引的（有一个倒排索引）和可搜索的，没有倒排索引的属性是不能被搜索到的。
+
+### 4-5 管理文档
+
+#### 索引文档
+
+```json
+PUT /megacorp/employee/1
+{
+    "first_name" : "John",
+    "last_name" :  "Smith",
+    "age" :        25,
+    "about" :      "I love to go rock climbing",
+    "interests": [ "sports", "music" ]
+}
+```
+
+> **`megacorp`**索引名称
+>
+> **`employee`**类型名称
+>
+> **`1`**特定雇员的ID
+
+#### 检索文档
+
+```json
+GET /megacorp/employee/1
+```
+
+> 将 HTTP 命令由 `PUT` 改为 `GET` 可以用来检索文档，同样的，可以使用 `DELETE` 命令来删除文档，以及使用 `HEAD` 指令来检查文档是否存在。如果想更新已存在的文档，只需再次 `PUT` 。
+
+返回结构如下
+
+```json
+{
+  "_index" :   "megacorp",
+  "_type" :    "employee",
+  "_id" :      "1",
+  "_version" : 1,
+  "found" :    true,
+  "_source" :  {
+      "first_name" :  "John",
+      "last_name" :   "Smith",
+      "age" :         25,
+      "about" :       "I love to go rock climbing",
+      "interests":  [ "sports", "music" ]
+  }
+}
+```
+
+|   key    |  value   |
+| :------: | :------: |
+|  _index  |  索引名  |
+|  _type   | 类型名称 |
+|   _id    |   编号   |
+| _version | 索引版本 |
+|  found   | 是否查到 |
+| _source  | 查询结果 |
+
+#### 轻量搜索
+
+**基础搜索**: 搜索位于索引megacorp中的类型为employee的所有雇员的信息
+
+```json
+GET /megacorp/employee/_search
+```
+
+​			```_search``` 默认返回10条信息
+
+**关键字段搜索**：搜索指定姓名的雇员信息
+
+```json
+GET /megacorp/employee/_search?q=last_name:Smith
+```
+
+#### 表达式搜索
+
+```json
+GET /megacorp/employee/_search
+{
+    "query" : {
+        "match" : {
+            "last_name" : "Smith"
+        }
+    }
+}
+```
+
+#### 表达式搜索2
+
+```json
+GET /megacorp/employee/_search
+{
+    "query" : {
+        "bool": {
+            "must": {
+                "match" : {
+                    "last_name" : "smith" 
+                }
+            },
+            "filter": {
+                "range" : {
+                    "age" : { "gt" : 30 } 
+                }
+            }
+        }
+    }
+}
+```
+
+> 以上是查询姓名 last_name 为smith，年龄大于30
+
+#### 全文搜索
+
+```json
+GET /megacorp/employee/_search
+{
+    "query" : {
+        "match" : {
+            "about" : "rock climbing"
+        }
+    }
+}
+```
+
+> 使用 match 查询在’about‘属性 上搜索某个参数，得到匹配的文档如下
+
+```json
+{
+   ...
+   "hits": {
+      "total":      2,
+      "max_score":  0.16273327,
+      "hits": [
+         {
+            ...
+            "_score":         0.16273327, 
+            "_source": {
+               "first_name":  "John",
+               "last_name":   "Smith",
+               "age":         25,
+               "about":       "I love to go rock climbing",
+               "interests": [ "sports", "music" ]
+            }
+         },
+         {
+            ...
+            "_score":         0.016878016, 
+            "_source": {
+               "first_name":  "Jane",
+               "last_name":   "Smith",
+               "age":         32,
+               "about":       "I like to collect rock albums",
+               "interests": [ "music" ]
+            }
+         }
+      ]
+   }
+}
+```
+
+> ES 会默认按照相关性得分排序，即每个文档跟查询的匹配程度
+>
+> "_score":        得分
+
+#### 短语搜索
+
+为此对 `match` 查询稍作调整，使用一个叫做 `match_phrase` 的查询：
+
+```json
+GET /megacorp/employee/_search
+{
+    "query" : {
+        "match_phrase" : {
+            "about" : "rock climbing"
+        }
+    }
+}
+```
+
+#### 高亮搜索
+
+许多应用都倾向于在每个搜索结果中 *高亮* 部分文本片段，以便让用户知道为何该文档符合查询条件。在 Elasticsearch 中检索出高亮片段也很容易。
+
+再次执行前面的查询，并增加一个新的 `highlight` 参数：
+
+```json
+GET /megacorp/employee/_search
+{
+    "query" : {
+        "match_phrase" : {
+            "about" : "rock climbing"
+        }
+    },
+    "highlight": {
+        "fields" : {
+            "about" : {}
+        }
+    }
+}
+```
+
+#### 聚合分析
+
+> 终于到了最后一个业务需求：支持管理者对员工目录做分析。 Elasticsearch 有一个功能叫聚合（aggregations），允许我们基于数据生成一些精细的分析结果。聚合与 SQL 中的 `GROUP BY` 类似但更强大。
+
+如挖掘员工中最受欢迎的兴趣爱好
+
+```json
+GET /megacorp/employee/_search
+{
+  "aggs": {
+    "all_interests": {
+      "terms": { "field": "interests" }
+    }
+  }
+}
+```
+
+### 4-6 分布式特性
+
+ES 可以横向扩展至数百、数千的服务器节点，同时可以处理PB级的数据。
+
+- 分配文档到不同的容器或分片中，文档可以存储在一个或多个节点中
+- 按集群节点来均衡分配这些分片，从而对索引和搜索过程进行负载均衡
+- 复制每个分片以支持数据冗余，从而防止硬件故障导致的数据丢失
+- 将集群中任一节点的请求路由到存有相关数据的节点
+- 集群扩容时无缝整合新节点，重新分配分片以便从离群节点恢复
+
+## 05 集群的原理
+
+ElasticSearch的主旨是随时可用和按需扩容，而扩容可以通过改用性能更好（垂直扩容、纵向扩容）或数量更多的服务器来（水平扩容、横向扩容）实现。
+
+**真正的扩容是水平扩容，因为硬件的限制。即为集群添加更多的节点，将负载压力和稳定性分散到这些节点中。**
+
+### 5-1 集群的特征
+
+#### 空集群
+
+如果我们启动了一个单独的节点，里面不包含任何的数据和索引，那我们的集群就是一个空集群。
+
+```空集群``` 包含空内容节点的集群
+
+```节点``` 一个运行中的Elasticsearch实例称为一个节点。
+
+ ```cluster.name```  集群是由一个或多个拥有相同 ```cluster.name``` 配置的节点组成，它们共同承担数据和负载的压力。
+
+> 当一个节点被选举为主节点时，它将负责管理集群范围内的所有变更、例如增加、删除索引，或者增加、删除节点等。
+>
+> 主节点并不需要涉及到文档级别的变更和搜索等操作，所以当集群只拥有一个主节点的情况下，流量增加时并不会影响性能。
+>
+> 任何节点都可以成为主节点。
+>
+> 用户可以将请求发送到集群中的任何节点，包括主节点。
+>
+> 每个节点都能知道任意文档所处的位置，并且能够将我们的请求直接转发到存储所需文档的节点。
+
+#### 集群健康
+
+Elasticsearch 的集群监控信息中包含了许多的统计数据，其中最为重要的一项就是 *集群健康* ， 它在 `status` 字段中展示为 `green` 、 `yellow` 或者 `red` 。
+
+```json
+GET /_cluster/health
+```
+
+| status |                   description                    |
+| :----: | :----------------------------------------------: |
+| green  |           所有主分片和副分片都正常运行           |
+| yellow | 所有主分片都正常运行，但不是所有副分片都正常运行 |
+|  red   |               有主分片没能正常运行               |
+
+#### 添加索引
+
+索引实际上是指向一个或多个物理分片的逻辑命名空间。
+
+一个分片是一个底层的工作单元，仅保存全部数据的一部分。其中，一个分片是一个Lucene的实例，以及它本身就是一个完整的搜索引擎。文档被存储和索引到分片内，但是应用程序是直接与索引而不是分片进行交互。
+
+elastic search是利用分片将数据分发到集群内各处的。分片是数据的容器，文档保存在分片内，分片又被分配到集群内的各个节点里。当集群的规模扩大或缩小时，ES会自动在各节点中迁移分片，使数据仍然均匀分布在集群里。
+
+一个分片可以是主分片或者副本分片，索引内任意一个文档都归属于一个主分片，所以主分片的数目决定索引能够保存的最大数据量。
+
+```json
+PUT /blogs
+{
+   "settings" : {
+      "number_of_shards" : 3,
+      "number_of_replicas" : 1
+   }
+}
+```
+
+> 添加索引示例
+>
+> number_of_shards ： 分片数
+>
+> number_of_replicas：副本数
