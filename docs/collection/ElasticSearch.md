@@ -713,3 +713,56 @@ PUT /website/blog/123/_create
 DELETE /website/blog/123
 ```
 
+### 6-9 批量操作文档
+
+bulk API 操作方式
+
+```
+{ action: { metadata }}\n
+{ request body        }\n
+{ action: { metadata }}\n
+{ request body        }\n
+...
+```
+
+`action/metadata` 行指定 *哪一个文档* 做 *什么操作* 。
+
+`action` 必须是以下选项之一:
+
+- **`create`**
+
+  如果文档不存在，那么就创建它。详情请见 [创建新文档](https://www.elastic.co/guide/cn/elasticsearch/guide/current/create-doc.html)。
+
+- **`index`**
+
+  创建一个新文档或者替换一个现有的文档。详情请见 [索引文档](https://www.elastic.co/guide/cn/elasticsearch/guide/current/index-doc.html) 和 [更新整个文档](https://www.elastic.co/guide/cn/elasticsearch/guide/current/update-doc.html)。
+
+- **`update`**
+
+  部分更新一个文档。详情请见 [文档的部分更新](https://www.elastic.co/guide/cn/elasticsearch/guide/current/partial-updates.html)。
+
+- **`delete`**
+
+  删除一个文档。详情请见 [删除文档](https://www.elastic.co/guide/cn/elasticsearch/guide/current/delete-doc.html)。
+
+`metadata` 应该指定被索引、创建、更新或者删除的文档的 `_index` 、 `_type` 和 `_id` 。
+
+删除一个文档
+
+```json
+{ "delete": { "_index": "website", "_type": "blog", "_id": "123" }}
+```
+
+组合操作
+
+```json
+POST /_bulk
+{ "delete": { "_index": "website", "_type": "blog", "_id": "123" }} 
+{ "create": { "_index": "website", "_type": "blog", "_id": "123" }}
+{ "title":    "My first blog post" }
+{ "index":  { "_index": "website", "_type": "blog" }}
+{ "title":    "My second blog post" }
+{ "update": { "_index": "website", "_type": "blog", "_id": "123", "_retry_on_conflict" : 3} }
+{ "doc" : {"title" : "My updated blog post"} } 
+```
+
