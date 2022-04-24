@@ -56,7 +56,19 @@ module.exports = {
                     }
                 ]
              },{
-                title:'工具',
+                title:'系统部署',
+                collapsable: true,
+                children: [
+                    {
+                        // title: 'collection',
+                        collapsable: false,
+                        children: [
+							['/collection/xtbs.md', 'Linux系统一站式部署']
+                        ]	
+                    }
+                ]
+             },{
+                title:'中间件',
                 collapsable: true,
                 children: [
                     {
