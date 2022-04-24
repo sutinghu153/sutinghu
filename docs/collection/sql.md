@@ -1,5 +1,4 @@
 <h1 align = "center" >数据库常字</h1>
-
 <font face="华文行楷" size="5">有关数据库的不常用、不常见、常用较复杂、不常用但很有用的知识点及应用整理如下</font>
 
 ## 批量插入
@@ -75,5 +74,19 @@ INSERT ALL
 	)
 	</foreach>
 SELECT * FROM dual
+```
+
+#### Navicate 跨库连接
+
+安装插件
+
+```
+create extension dblink;
+```
+
+连接数据库
+
+```
+SELECT dblink_connect('source','hostaddr=10.14.2.31 port=5432 dbname=venusmas user =venus password=venus');
 ```
 
