@@ -1,25 +1,29 @@
 <h1 align="center" >个人项目介绍</h1>
-
 <font face="华文行楷" size="5">本专题为个人项目介绍，目的是能够对项目快速浏览，有初步印象，如果对其感兴趣，可以进一步阅览。</font>
+
+
+
+
+
+[TOC]
+
+
 
 ## 01 微信公众号App阅读模式
 
 <font face="华文宋体" size="3">假如公众号的阅读体验可以选择为图书App，你会喜欢吗？</font>
 
 <h3 align="center">思而不得、戛然而止</h3>
-
 <font face="华文宋体" size="3">**当我写作记录的时间越久的时候，越感觉在看公众号时会缺少一些东西——它一直无法让我沉浸和集中精神在内容中，无论是什么样的公众号，都有这种感觉。**</font>
 
 <font face="华文宋体" size="3">**后来我才慢慢发现，这种感觉就是```思而不得、戛然而止```。比如当你看到一篇感兴趣的推文时，想了解它的姊妹篇或获取更系统详细的内容时，需要废一番心思去其他的平台，并且经过一系列关键词检索和肉眼筛选后才能继续过瘾。**</font>
 
 <h3 align="center">内容具有关联性</h3>
-
 <font face="华文宋体" size="3">**其实，对于公众号创作者来说，内容是具有关联性的，尤其像我一样将公众号作为记录载体的人。**</font>
 
 <font face="华文宋体" size="3">**而```公众号的模式更适合碎片化、热点追踪式、观点输出式等内容的传播```。但是，公众号的模式兼容并包，对于如小说连载式的创作者来讲，一样能够作为传播的载体，只是形式上，缺少那种“感觉”。**</font>
 
 <h3 align="center">改进的方向</h3>
-
 <font face="华文宋体" size="3">**简单总结，公众号的内容有以下方面可以其他操作辅助改进：**</font>
 
 - **内容的结构性差**
@@ -39,7 +43,6 @@
 <font face="华文宋体" size="3">**不适合小说创作者的内容传播**</font>
 
 <h3 align="center">做出改变</h3>
-
 <font face="华文宋体" size="3">**那么，如果公众号的内容能够提供一种App模式，这对于系列连载创作者，会不会更好呢？**</font>
 
 > 抱着这个想法为出发点，我为自己的公众号量身定做了一款产品：**ShareApp，以小程序为载体，通过内容流通，以实现模式切换。**
@@ -49,7 +52,6 @@
 <font face="华文宋体" size="3">**对于小程序的运维，只需要将每次更新的内容通过后台系统分组分模块插入对应的内容就好啦**</font>
 
 <h3 align="center">我的小程序</h3>
-
 - <font face="华文宋体" size="3">后端：采用微信小程序云数据库，```后端0代码```</font>
 
 - <font face="华文宋体" size="3">前端：原生小程序开发</font>
@@ -395,4 +397,286 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 >```endTime``` 用来设置结束时间
 
 - 在IDEA中的maven插件管理工具中运行 ```count codes:count```
+
+## 04 模板填充组件
+
+### 关于组件
+
+#### 01 业务场景
+
+在资规系统中，使用者对文件及格式规范具有严格要求，比如会议纪要生成的文件，各种事务的文件以及数据分析后的数据报表。
+
+![1647067037426](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647067037426.png)
+
+<h6 align ='center'>图（1）工作效率完成情况模板</h6>
+
+![1647067066111](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647067066111.png)
+
+<h6 align ='center'>图（2）表格模板</h6>
+
+#### 02 现行系统的模板开发及管理模式
+
+在之前的系统业务开发中，模板文件的开发和管理表现为以下特点：
+
+1. 模板管理混乱
+
+   模板管理混乱表现为，有些模板的管理通过数据库缓存，有些模板直接打包在jar服务中，有些模板通过file服务调用。
+
+   混乱的模板管理给系统的维护和实施人员带来了一些不必要的挑战和麻烦，比如对系统不熟悉时，可能忽视部分模板的管理，从而解决一些不必要的bug。
+
+2. 对接流程繁杂
+
+   当每一个具有使用模板的需求提出时，开发人员都需要经过以下的环节
+
+   ![1647068947194](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647068947194.png)
+
+   以上，每次具有模板填充相关的需求都是一次折腾，而这种折腾可以通过环节规范和统一来优化，缩小该过程的时间，提高对接的效率。
+
+3. 不能立即响应
+
+   在以上的方式中，每次同类需求的完成、验证和发布，都需要开发人员重新打包、实施人员重新发包，多余的环节有可能造成实施故障，并且笨拙的方式使得客户的需求不能立即响应。
+
+4. 时间久内存消耗大
+
+   我看了每个填充模板的代码逻辑，都使用了N多个内部循环，多条件循环，模板的生成因而影响系统的性能，消耗内存，且复杂模板的填充用时太久。
+
+#### 03 解决方案
+
+模板填充组件，是基于sql语句和规范对复杂的word或excel模板进行填充的一套通用代码，它在大监管工作效率月报及考核指标相关文件报表的展示及导出下载方面显示出重要的作用和极高的使用性。
+
+为了提高大监管开发效率，我设计了Word及excel的模板填充组件，该组件基于sql的查询和配置，能够极大减少代码内部循环，快速填充模板，组件支持word表格、word字段、word图表、excel数据的填充。
+
+核心逻辑如下：
+
+![1647072599483](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647072599483.png)
+
+### 组件的诞生历程
+
+#### 01 通过规范以动制静
+
+##### 目标
+
+为了实现后期模板填充的基础代码的0改动，必须有一套实用的规范，实现数据动态插入。
+
+为了实现以上目标，将数据库查询结果直接插入模板中，SQL的配置设计了相关规范（规范及sql示例详见附录）。
+
+##### 核心逻辑
+
+![1647073251087](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647073251087.png)
+
+
+
+##### 核心代码
+
+核心代码详见附录
+
+##### 结果
+
+基于以上方法，当我们获取对应模板的sql语句后，只需要执行以下语句，即可得到模板需要的构造值。
+
+```java
+// 获取实体
+JcTemplateConfig jcTemplateConfig = this.getEntity(templateId);
+
+// 获取数据
+List<Map<String, Object>> mapData = feildDataService.buildTemplateData(jcTemplateConfig.getTemplateSql());
+```
+
+#### 02 文档表格多源支持
+
+##### 目标
+
+为了使组件能够兼容word及excel等不同类型的文件填充，需要将对应模板进行分类，并在代码中实现分流。
+
+##### 核心代码
+
+```Java
+if (Objects.equals(WORD,wordOrExcel)) {
+return 	this.getWordHistory(templeteId, fileType, year, month, day);
+}else if (Objects.equals(EXCEL,wordOrExcel)) {
+return this.getExcelHistory(templeteId, fileType, year, month, day);
+}else {throw new DeclareException("不存在的类型");}
+```
+
+#### 03 图文表数应有尽有
+
+##### 目标
+
+在word或excel的模板填充中，会涉及到图表如柱状图、饼图等的填充及excel表格的填充，在正确配置sql后，组件将在模板处理中，自动对对应的图表等进行填充。
+
+##### 核心代码
+
+核心代码详见附录
+
+#### 04 用资源池闭源节流
+
+##### 目标
+
+复杂的模板，会在数据库查询多条sql，这会增大数据库的压力，因此设计资源池，使得研发人员通过接口调用可以实现每个模板按年、按月、按日获取唯一缓存数据，从而降低模板sql查询批次。
+
+##### 核心逻辑
+
+![1647073956330](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647073956330.png)
+
+##### 核心代码
+
+```java
+// 校验
+		historicWordsService.checkDataAvailability(templeteId);
+// 获取历史缓存数据
+JcHistoricWords words = historicWordsService.getWordsByTemplateId(templeteId, fileType, year, month, day);
+```
+
+### 推广使用的意义
+
+1. 对模板进行统一管理，降低维护成本
+2. 动态管理sql，快速响应用户需求
+3. 减少对接环节，提高工作效率
+4. 快速验证，不必打包发布
+5. 规范使用接口，提高前后端对接效率
+
+### 组件后期的优化
+
+#### 优化SQL
+
+当前模板填充版本基于大量sql，有些sql复杂性较高，考虑以视图方式缓存数据，提高sql查询。
+
+#### 定制化配置
+
+当用户只需要查询某具体时间段的数据时，需要配置```startTime```及```endTime```字段，而一些具有特殊需求的模板，也应该增加对应的配置项，这种配置项在后期的使用中将逐一完善。
+
+### 附录
+
+#### sql规范
+
+| 符号 |                            作用                            |      |
+| :--: | :--------------------------------------------------------: | :--: |
+|  #   |                 用来分割每个完成的查询sql                  |      |
+|  []  |      如果你想生成图表，可以将你想展示的图表名用[]包裹      |      |
+|  {}  | 如果你想插入一个表格数据，可以用{}将对应数组的名称用{}包裹 |      |
+|  ;   |                  用来分割每个可执行的sql                   |      |
+
+#### SQL示例
+
+##### 普通SQL
+
+```sql
+SELECT COUNT(*) as FWBJ FROM doc_entity WHERE doc_entity.script_type = 2 AND doc_entity.key_num_gather IS NOT NULL and doc_entity.op_state = 5;#
+```
+
+##### 表格SQL
+
+```sql
+SELECT
+	city_assess_id AS INDEX,
+	assess_project AS prj,
+	assess_indicative AS zhibiao,
+	indicative_nature as xinzhi,
+	score as fenzhi,
+	inspection_points as content,
+	duty_office_depart as depart,
+	match_office_depart as depart2,
+	duty_leader as leader,
+	assess_performance as state,
+	'无' as remark,
+	update_time as shijian
+FROM
+	jc_urban_assessment;{table}#
+```
+
+##### 图表SQL
+
+```sql
+SELECT
+	city_assess_id AS INDEX,
+	assess_project AS prj,
+	assess_indicative AS zhibiao,
+	indicative_nature as xinzhi,
+	score as fenzhi,
+	inspection_points as content,
+	duty_office_depart as depart,
+	match_office_depart as depart2,
+	duty_leader as leader,
+	assess_performance as state,
+	'无' as remark,
+	update_time as shijian
+FROM
+	jc_urban_assessment;[table]#
+```
+
+### 核心代码
+
+#### 数据填充核心代码
+
+```java
+if(Objects.equals(e.get("TYPE"),FeildTypeEnum.ORDINARY.getDesc())) {
+Map<String, Object> map = new HashMap<>(2);
+map.put("TYPE",FeildTypeEnum.ORDINARY.getDesc());
+map.put("VALUE",sqlByMapService.getTemplateOrdinary(e.get("SQL")));resultData.add(map);
+}if(Objects.equals(e.get("TYPE"),FeildTypeEnum.ORDINARY.getDesc())) {
+Map<String, Object> map = new HashMap<>(2);
+map.put("TYPE",FeildTypeEnum.ORDINARY.getDesc());
+map.put("VALUE",sqlByMapService.getTemplateOrdinary(e.get("SQL")));resultData.add(map);
+}if(Objects.equals(e.get("TYPE"),FeildTypeEnum.ORDINARY.getDesc())) {
+Map<String, Object> map = new HashMap<>(2);
+map.put("TYPE",FeildTypeEnum.ORDINARY.getDesc());
+map.put("VALUE",sqlByMapService.getTemplateOrdinary(e.get("SQL")));
+resultData.add(map);
+}
+```
+
+#### sql分割核心代码
+
+```java
+// 存在表中表结构
+if (string.contains(ConstantJiance.CHECK_CUR_LEFT) && string.contains(ConstantJiance.CHECK_CUR_RIGHT)) {
+map.put("TYPE", FeildTypeEnum.TABLE.getDesc());
+String[] sqls = string.split(ConstantJiance.CUR_LEFT);
+map.put("SQL",sqls[0]);
+map.put("TABLE_NAME",sqls[1].split(ConstantJiance.CUR_RIGHT)[0]);// 普通字段
+}else if (!string.contains(ConstantJiance.CHECK_CUR_LEFT) && !string.contains(ConstantJiance.CHECK_CUR_RIGHT)) {
+map.put("TYPE", FeildTypeEnum.ORDINARY.getDesc());
+map.put("SQL",string);}else if (string.contains(ConstantJiance.CHECK_TABLE_CUR_LEFT) && string.contains(ConstantJiance.CHECK_TABLE_CUR_RIGHT)){
+map.put("TYPE", FeildTypeEnum.CHART.getDesc());String[] sqls = string.split(ConstantJiance.CUR_TABLE_LEFT);
+map.put("SQL",sqls[0]);map.put("CHART_NAME",sqls[1].split(ConstantJiance.CUR_TABLE_RIGHT)[0]);
+}else {throw new DeclareException("异常SQL，请重新配置");}
+```
+
+#### 图文填充核心代码
+
+```java
+/**
+	 * 功能描述: 根据要填充的类型 对内容进行填充WORD
+	 * @author sutinghu
+	 * @date
+	 * @param file
+	 * @param list 参数
+	 * @return byte[]
+	 */
+	@SneakyThrows
+	public static byte[] buildTemplateWord(byte[] file, List<Map<String, Object>> list){
+		if (CollectionUtils.isEmpty(list)) {
+			return file;
+		}
+		byte[] fileResult = file;
+		for (Map<String, Object> map : list) {
+		String type = (String) map.get("TYPE");
+		Object value = map.get("VALUE");
+		// 填充的内容是普通字段
+if(Objects.equals(FeildTypeEnum.ORDINARY.getDesc(),type)){if (value instanceof Map) {Map<String, Object> valueOrdinaty = (Map<String, Object>) value;fileResult = fillWordDataByMap(fileResult, valueOrdinaty);}
+// 填充的内容是普通表格
+}else if(Objects.equals(FeildTypeEnum.TABLE.getDesc(),type)){
+String tableName = (String) map.get("TABLE_NAME");
+if (value instanceof List) {fileResult = fillWordDataByMap(fileResult,new HashMap<String, Object>(2) {{ put(tableName,value);}});}// 填充的内容是普通图表
+}else if(Objects.equals(FeildTypeEnum.CHART.getDesc(),type)){
+String tableName = (String) map.get("CHART_NAME");
+if (value instanceof List) {
+List<Map<String, Object>> list1 = (List<Map<String, Object>>) value;
+fileResult = fillWordChartByMap(fileResult,list1,tableName);
+}
+}
+}
+return fileResult;
+}
+```
 
