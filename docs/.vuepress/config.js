@@ -19,14 +19,26 @@ module.exports = {
 		],
 		sidebar: [
 			{
-                title:'项目',
+                title:'个人项目',
                 collapsable: true,
                 children: [
                     {
                         //title: 'collection',
-                        collapsable: false,
+                        collapsable: true,
                         children: [
                             ['/collection/xm.md', '项目介绍']
+                        ]
+                    }
+                ]
+             },{
+                title:'Linux应用开发',
+                collapsable: true,
+                children: [
+                    {
+                        // title: 'collection',
+                        collapsable: true,
+                        children:[ 
+                            ['/collection/xtkf.md', 'IO-系统开发']
                         ]
                     }
                 ]
@@ -36,14 +48,14 @@ module.exports = {
                 children: [
                     {
                         // title: 'collection',
-                        collapsable: false,
+                        collapsable: true,
                         children:[ 
                             ['/collection/sql.md', '数据库常字']
                         ]
                     }
                 ]
              },{
-                title:'命令',
+                title:'常用命令',
                 collapsable: true,
                 children: [
                     {

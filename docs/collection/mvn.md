@@ -1,5 +1,4 @@
 <h1 align="center">maven</h1>
-
 本文是对maven系统的简要梳理和总结，如果有maven相关的问题可以参考本文。
 
 ## maven 坐标系统

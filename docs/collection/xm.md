@@ -9,7 +9,7 @@
 
 
 
-# 01 微信公众号App阅读模式
+## 01 微信公众号App阅读模式
 
 <font face="华文宋体" size="3">假如公众号的阅读体验可以选择为图书App，你会喜欢吗？</font>
 
@@ -61,7 +61,7 @@
 > 扫码查阅我的小程序
 
 
-# 02 分布式博客云笔记
+## 02 分布式博客云笔记
 
 <font face="华文宋体" size="3">在工作的过程中，会被动、主动的学习很多的东西，而这个过程中产生的零散的知识点，如何记录、如何展示，对我个人产生了很大的影响，为了提高工作和学习的效率，我觉得，我需要一款安全的笔记软件。</font>
 
@@ -105,7 +105,7 @@
 >www.dglgd.com
 >```
 
-# 03 开发一款Maven插件
+## 03 开发一款Maven插件
 
 
 
@@ -131,7 +131,7 @@ git log --author="sutinghu" --since='2021-09-20' --until='2021-10-22' --pretty=t
 
 <font face="华文宋体" size="3">即“约定优于配置”，maven通过插件体系与XML配置方式将程序封装在了自己的maven体系中，这个封装后的程序被称为maven插件。</font>
 
-## 动手实现
+### 动手实现
 
 #### 用Java和Git交互
 
@@ -151,7 +151,7 @@ git log --author="sutinghu" --since='2021-09-20' --until='2021-10-22' --pretty=t
    3. 根据统计需要得出统计数据
    4. 将所有的结果进行最终的统计
 
-## 核心的代码
+### 核心的代码
 
 #### 获取所有的提交信息
 
@@ -333,7 +333,7 @@ public void countDiff(RevCommit commit,UserCount userCount){
     }
 ```
 
-## 使用
+### 使用
 
 最后，如果你想使用这个插件，只需要三个步骤
 
@@ -398,9 +398,9 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 
 - 在IDEA中的maven插件管理工具中运行 ```count codes:count```
 
-# 04 模板填充组件
+## 04 模板填充组件
 
-## 关于组件
+### 关于组件
 
 #### 01 业务场景
 
@@ -409,11 +409,9 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 ![1647067037426](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647067037426.png)
 
 <h6 align ='center'>图（1）工作效率完成情况模板</h6>
-
 ![1647067066111](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647067066111.png)
 
 <h6 align ='center'>图（2）表格模板</h6>
-
 #### 02 现行系统的模板开发及管理模式
 
 在之前的系统业务开发中，模板文件的开发和管理表现为以下特点：
@@ -450,7 +448,7 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 
 ![1647072599483](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647072599483.png)
 
-## 组件的诞生历程
+### 组件的诞生历程
 
 #### 01 通过规范以动制静
 
@@ -527,7 +525,7 @@ return this.getExcelHistory(templeteId, fileType, year, month, day);
 JcHistoricWords words = historicWordsService.getWordsByTemplateId(templeteId, fileType, year, month, day);
 ```
 
-## 推广使用的意义
+### 推广使用的意义
 
 1. 对模板进行统一管理，降低维护成本
 2. 动态管理sql，快速响应用户需求
