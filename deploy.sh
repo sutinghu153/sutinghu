@@ -22,3 +22,10 @@ git push -f git@github.com:sutinghu153/sutinghu.git master:blogs
 #cd -
 
 # 最后发布的时候执行 bash deploy.sh
+yarn docs:build
+cd docs/.vuepress/dist
+echo www.dglgd.com > CNAME
+git init
+git add -A
+git commit -m 'deplosy'
+git push -f git@github.com:sutinghu153/sutinghu.git master:blogs
