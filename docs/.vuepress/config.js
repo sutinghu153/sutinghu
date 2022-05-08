@@ -22,103 +22,55 @@ module.exports = {
                 title:'个人项目',
                 //collapsable: true,
                 children: [
-                    {
-                        //title: 'collection',
-                        //collapsable: true,
-                        children: [
-                            ['/collection/xm.md', '项目介绍']
-                        ]
-                    }
+                    ['/collection/xm.md', '项目介绍']
                 ]
              },{
                 title:'Linux应用开发',
                 //collapsable: true,
                 children: [
-                    {
-                        // title: 'collection',
-                        //collapsable: true,
-                        children:[ 
-                            ['/collection/xtkf.md', 'IO-系统开发'],
-							['/collection/jcjtx.md', '进程间通信']
-                        ]
-                    }
+                    ['/collection/xtkf.md', 'IO-系统开发'],
+					['/collection/jcjtx.md', '进程间通信']
                 ]
              },{
                 title:'设计模式',
                 //collapsable: true,
                 children: [
-                    {
-                        // title: 'collection',
-                        //collapsable: false,
-                        children: [
-							['/collection/designcode.md', '设计模式-编码'],
-							['/collection/designfx.md', '设计模式-分析']
-                        ]	
-                    }
+                    ['/collection/designcode.md', '设计模式-编码'],
+					['/collection/designfx.md', '设计模式-分析']
                 ]
              },{
                 title:'数据结构',
                 //collapsable: true,
                 children: [
-                    {
-                        // title: 'collection',
-                        //collapsable: false,
-                        children: [
-                            ['/collection/dscode.md', '仿JKD实现数据结构'],
-							['/collection/dsanalys.md', '数据结构分析']
-                        ]	
-                    }
+                    ['/collection/dscode.md', '仿JKD实现数据结构'],
+					['/collection/dsanalys.md', '数据结构分析']
                 ]
              },{
                 title:'常用命令',
                 //collapsable: true,
                 children: [
-                    {
-                        // title: 'collection',
-                        //collapsable: false,
-                        children: [
-                            ['/collection/gitml.md', '常用命令'],
-							['/collection/gitml.md', '命令解析']
-                        ]	
-                    }
+                    ['/collection/gitml.md', '常用命令'],
+					['/collection/gitml.md', '命令解析']
                 ]
              },{
                 title:'数据库',
                 //collapsable: true,
                 children: [
-                    {
-                        // title: 'collection',
-                        //collapsable: true,
-                        children:[ 
-                            ['/collection/sql.md', '数据库常字']
-                        ]
-                    }
+                    ['/collection/sql.md', '数据库常字']
                 ]
              },{
                 title:'系统部署',
                 //collapsable: true,
                 children: [
-                    {
-                        // title: 'collection',
-                        //collapsable: false,
-                        children: [
-							['/collection/xtbs.md', 'Linux系统一站式部署']
-                        ]	
-                    }
+                    ['/collection/xtbs.md', 'Linux系统一站式部署']
                 ]
              },{
                 title:'中间件',
                 //collapsable: true,
                 children: [
-                    {
-                        // title: 'collection',
-                        //collapsable: false,
-                        children: [
-                            ['/collection/mvn.md', 'Maven'],
-							['/collection/kafka.md', 'Kafka'],
-							['/collection/ElasticSearch.md', 'ElasticSearch']
-                        ]	
-                    }
+                    ['/collection/mvn.md', 'Maven'],
+					['/collection/kafka.md', 'Kafka'],
+					['/collection/ElasticSearch.md', 'ElasticSearch']
                 ]
              }
 		]
