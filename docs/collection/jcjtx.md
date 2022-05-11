@@ -557,13 +557,23 @@ pause（睡眠）、sleep（睡眠）、while（挂起）
 - 该整数类型为key_t,在sys/types.h中被定义为长整型
 - 普通文件是通过open打开一个文件名，获得文件描述符；IPC队形是通过get可根据给定的key 去创建一个IPC对象，并返回IPC标识符
 
-### IPC管理
+### IPC对象的管理
 
 ipcs 查看内核空间对象  
 
 #### 查看IPC对象
 
- ipcs -m 
+> 　**ipcs -m**　　查看系统共享内存信息
+>
+> 　**ipcs -q**　　 查看系统消息队列信息
+>
+> 　**ipcs -s**　　  查看系统信号量信息
+>
+> 　**ipcs [-a]**　    系统默认输出信息，显示系统内所有的IPC信息
+>
+>  [Linux命令：ipcs/ipcrm命令 ](https://www.cnblogs.com/klb561/p/11871402.html) 
+
+ 例子：ipcs -m 
 
 ```shell
 ------ Shared Memory Segments --------
@@ -612,4 +622,362 @@ key        shmid      owner      perms      bytes      nattch     status
 
 - 参数共享内存映射后的地址
 - 返回值，成功 0 ，失败 -1
+
+### 消息队列
+
+#### 什么是消息队列？
+
+管道中的队列是方向单一、数据结构类型单一的顺序队列。那么消息队列呢？
+
+- 消息队列亦称报文队列，也叫做信箱。是Linux的一种通信机制，这种通信机制传递的数据具有某种结构，而不是简单的字节流。
+- 消息队列的本质其实是一个内核提供的链表，内核基于这个链表，实现了一个数据结构
+- 向消息队列中写数据，实际上是向这个数据结构中插入一个新结点；从消息队列汇总读数据，实际上是从这个数据结构中删除一个结点
+- 消息队列提供了一个从一个进程向另外一个进程发送一块数据的方法
+- 消息队列也有管道一样的不足，就是每个数据块的最大长度是有上限的，系统上全体队列的最大总长度也有一个上限。
+-  消息队列提供了一个从一个进程向另一个进程发送数据块的方法，每个数据块都可以被认为是有一个类型，接受者接受的数据块可以有不同的类型。 
+-  每个消息的最大长度是有上限的**(MSGMAX)**，每个消息队列的总的**字节数(MSGMNB)**，系统上消息队列的**总数上限(MSGMNI)**。可以用 **cat /proc/sys/kernel/msgmax** 查看具体的数据。 
+
+<img :src="$withBase('/imags/xxdl_1.png')" alt="xxdl_1">
+
+> type 代表是的数据结构的类型如，字符串、整型、字节流
+>
+> length 代表的是当前结构中data的长度
+>
+> data 指当前结点消息的数据内容
+>
+> 整体表现为链式队列，消息队列中的每个消息类型可以保持不一致
+
+内核为消息队列IPC对象维护了一个数据结构 ```struct ipc_perm``` 用于标记消息队列，让进程知道操作的是哪个消息队列。
+
+过程如下：
+
+1.  每一个msqid_ds表示一个消息队列
+2. 通过msqid_ds.msg_first、msg_last维护一个先进先出的msg链表队列
+3. 当发送一个消息到该消息队列时，把发送的消息构造成一个msg的结构对象
+4. 添加到msqid_ds.msg_first、msg_last维护的链表队列 
+
+#### 消息队列的工作机制如何？
+
+<img :src="$withBase('/imags/xxdl_2.png')" alt="xxdl_2">
+
+1. 生命周期随内核，消息队列会一直存在，需要我们显示的调用接口删除或使用命令删除
+2. 消息队列可以双向通信
+3. 克服了管道只能承载无格式字节流的缺点
+4. 消息队列中的消息被消费后会被清理即写入数据为插入节点，读取数据为删除节点
+
+#### 操作消息队列
+
+##### 创建消息队列
+
+###### 函数原型
+
+```c
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+int msgget(key_t key, int msgflag);
+```
+
+###### 函数参数
+
+- key：某个消息队列的名字,两种方式
+
+  - 使用宏
+
+    >  [ linux进程通信IPC之IPC_PRIVATE与ftok比较](https://blog.csdn.net/xhu_eternalcc/article/details/16801825) 
+
+    
+
+  - 用ftok()产生
+
+  ```c
+  #include <sys/types.h>
+  #include <sys/ipc.h>
+  key_t ftok(const char *pathname, int proj_id);
+  ```
+
+- msgflag：有两个选项 **IPC_CREAT** 和 **IPC_EXCL** 
+
+  - 单独使用**IPC_CREAT**，如果消息队列不存在则创建之，如果存在则打开返回；
+  - 单独使用**IPC_EXCL**是没有意义的；
+  - 两个同时使用，如果消息队列不存在则创建之，如果存在则出错返回。
+  - 用来分配权限 0777
+
+- 返回值：成功返回一个非负整数，即消息队列的标识码，失败返回-1
+
+###### 函数test
+
+```c
+#include "sys/types.h"
+#include "sys/msg.h"
+#include "signal.h"
+#include "unistd.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+int main()
+{
+	int msg_key;
+//	key_t key= ftok("./msg",)
+	msg_key = msgget(IPC_PRIVATE,0777);
+	if(msg_key<0)
+	{
+		printf("msg create failure \n");
+		return -1;	
+	}
+	printf("msg create sucess msg_key = %d \n",msg_key);
+	system("ipcs -q");
+	return 0;	
+ } 
+```
+
+结果
+
+<img :src="$withBase('/imags/xxdl_msgget.png')" alt="xxdl_msgget">
+
+##### 控制消息队列
+
+###### 函数原型
+
+```c
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+int msgctl(int msqid, int cmd, struct msqid_ds *buf);
+```
+
+###### 函数参数
+
+- msqid：由msgget函数返回的消息队列标识码
+- cmd：有三个可选的值，在此我们使用IPC_RMID
+  - **IPC_STAT** 把msqid_ds结构中的数据设置为消息队列的当前关联值
+  - **IPC_SET** 在进程有足够权限的前提下，把消息队列的当前关联值设置为msqid_ds数据结构中给出的值
+  - **IPC_RMID** 删除消息队列
+- 返回值：成功返回0，失败返回-1
+
+###### 函数test
+
+```c
+#include "sys/types.h"
+#include "sys/msg.h"
+#include "signal.h"
+#include "unistd.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+
+int main()
+{
+	int msg_key;
+	msg_key = msgget(IPC_PRIVATE,0777);
+	if(msg_key<0)
+	{
+		printf("msg create failure \n");
+		return -1;	
+	}
+	printf("msg create sucess msg_key = %d \n",msg_key);
+	system("ipcs -q");
+//delete test
+	msgctl(msg_key,IPC_RMID,NULL);
+	system("ipcs -q");
+	return 0;	
+ }
+```
+
+结果
+
+<img :src="$withBase('/imags/xxdl_msgctl.png')" alt="xxdl_msgctl">
+
+##### 消息队列输入
+
+###### 函数原型
+
+ 把一条消息添加到消息队列中 
+
+```c
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);
+```
+
+###### 函数参数
+
+- msgid：由msgget函数返回的消息队列标识码，向谁发送
+
+- msgp：指针指向准备发送的消息，发送哪个消息
+
+  -  消息结构一方面必须小于系统规定的上限，另一方面必须以一个long int长整型开始，接受者以此来确定消息的类型 
+
+    ```c
+    struct msgbuf
+    {
+         long mtype;// 消息类型
+         char mtext[N];// 消息正文
+    };
+    ```
+
+- msgsz：msgp指向的消息的长度，即消息正文的字节数
+
+- msgflg：
+
+  - 默认为0，直到发送完成函数才返回
+  - IPC_NOWAIT 消息没有发送完成函数也会立即返回
+
+- 返回值：成功返回0，失败返回-1 
+
+###### 函数test
+
+```c
+#include "sys/types.h"
+#include "sys/msg.h"
+#include "signal.h"
+#include "unistd.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+
+struct msgbuf
+{
+	long type;
+	char voltage[124];
+	char ID[4];
+	
+};
+int main()
+{
+	int msg_key;
+	struct msgbuf sendbuf;
+	msg_key = msgget(IPC_PRIVATE,0777);
+	if(msg_key<0)
+	{
+		printf("msg create failure \n");
+		return -1;	
+	}
+	printf("msg create sucess msg_key = %d \n",msg_key);
+	system("ipcs -q");
+
+	// init sendbuf
+	sendbuf.type=100;
+	printf("please input msg %s\n");
+	
+	fgets(sendbuf.voltage,124,stdin);
+	 
+	// write msg to queue 
+	msgsnd(msg_key,(void *) &sendbuf,strlen(sendbuf.voltage),0);
+	
+	while(1);
+
+	system("ipcs -q");
+	return 0;	
+ } 
+```
+
+结果
+
+<img :src="$withBase('/imags/xxdl_msgsend.png')" alt="xxdl_msgsend">
+
+##### 消息队列输出
+
+###### 函数原型
+
+ 从一个消息队列接受消息 
+
+```c
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtype, int msgflg);
+```
+
+###### 函数参数
+
+- msgid：由msgget函数返回的消息队列标识码，从哪里读
+
+- msgp：指针指向准备读取的消息，读取的消息的内容
+
+  -  消息结构一方面必须小于系统规定的上限，另一方面必须以一个long int长整型开始，接受者以此来确定消息的类型 
+
+    ```c
+    struct msgbuf
+    {
+         long mtype;// 消息类型
+         char mtext[N];// 消息正文
+    };
+    ```
+
+- msgsz：msgp想读多少个
+
+- msgtype：读取的消息的类型
+
+  - 0：接收消息队列中的第一个消息
+  - 大于0：接收消息队列中第一个类型为msgtype的消息
+  - 小于0，接收消息队列中类型值不大于msgtype的绝对值且类型值又最小的消息
+
+- msgflg：
+
+  - 默认为0，没有消息会一直阻塞
+  - IPC_NOWAIT 消息没有发送完成函数也会立即返回ENOMSG
+
+- 返回值：成功返回实际接收到的字符数，失败返回-1
+
+###### 函数test
+
+```c
+#include "sys/types.h"
+#include "sys/msg.h"
+#include "signal.h"
+#include "unistd.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+
+struct msgbuf
+{
+	long type;
+	char voltage[124];
+	char ID[4];
+	
+};
+int main()
+{
+	int msg_key;
+	int msg_ret;
+	struct msgbuf sendbuf,recvbuf;
+	msg_key = msgget(IPC_PRIVATE,0777);
+	if(msg_key<0)
+	{
+		printf("msg create failure \n");
+		return -1;	
+	}
+	printf("msg create sucess msg_key = %d \n",msg_key);
+	system("ipcs -q");
+
+	// init sendbuf
+	sendbuf.type=100;
+	printf("please input msg %s\n");
+	
+	fgets(sendbuf.voltage,124,stdin);
+	 
+	// write msg to queue 
+	msgsnd(msg_key,(void *) &sendbuf,strlen(sendbuf.voltage),0);
+	memset(recvbuf.voltage,0,124);
+	// read msg from queue
+	msg_ret = msgrcv(msg_key,(void *) &recvbuf,124,100,0);
+	printf("recv:%s",recvbuf.voltage);
+	printf("msg_ret:%d",msg_ret);
+	system("ipcs -q");
+	return 0;	
+ } 
+```
+
+结果
+
+<img :src="$withBase('/imags/xxdl_msgrcv.png')" alt="xxdl_msgrcv">
+
+### 信号灯
+
+>  [Linux进程间通信- 信号灯](https://www.cnblogs.com/linuxbug/p/4901767.html) 
+
+
 

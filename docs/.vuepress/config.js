@@ -1,6 +1,6 @@
 module.exports = {
 	
-	// base:"/sutinghu/",
+
 	logo: './imags/tou.png',
 	title:'suting-Blogs',
 	description:'分布式博客云笔记',
@@ -25,11 +25,12 @@ module.exports = {
                     ['/collection/xm.md', '项目介绍']
                 ]
              },{
-                title:'Linux应用开发',
+                title:'Linux系统开发',
                 //collapsable: true,
                 children: [
                     ['/collection/xtkf.md', 'IO-系统开发'],
-					['/collection/jcjtx.md', '进程间通信']
+					['/collection/jcjtx.md', '进程间通信'],
+					['/collection/dxctx.md', 'Linux多线程']
                 ]
              },{
                 title:'设计模式',
@@ -49,14 +50,14 @@ module.exports = {
                 title:'常用命令',
                 //collapsable: true,
                 children: [
-                    ['/collection/gitml.md', '常用命令'],
-					['/collection/gitml.md', '命令解析']
+                    ['/collection/gitml.md', '常用命令']
                 ]
              },{
                 title:'数据库',
                 //collapsable: true,
                 children: [
-                    ['/collection/sql.md', '数据库常字']
+					['/collection/db_sql_base.md', '数据库基础'],
+                    ['/collection/sql.md', '数据库常用总结']
                 ]
              },{
                 title:'系统部署',

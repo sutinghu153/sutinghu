@@ -60,6 +60,8 @@
 
 > 扫码查阅我的小程序
 
+<img :src="$withBase('/imags/xcx.png')" alt="xcx">
+
 
 ## 02 分布式博客云笔记
 
@@ -406,10 +408,10 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 
 在资规系统中，使用者对文件及格式规范具有严格要求，比如会议纪要生成的文件，各种事务的文件以及数据分析后的数据报表。
 
-![1647067037426](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647067037426.png)
+<img :src="$withBase('/imags/1647067037426.png')" alt="1647067037426">
 
 <h6 align ='center'>图（1）工作效率完成情况模板</h6>
-![1647067066111](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647067066111.png)
+<img :src="$withBase('/imags/1647067066111.png')" alt="1647067066111">
 
 <h6 align ='center'>图（2）表格模板</h6>
 #### 02 现行系统的模板开发及管理模式
@@ -426,7 +428,9 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 
    当每一个具有使用模板的需求提出时，开发人员都需要经过以下的环节
 
-   ![1647068947194](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647068947194.png)
+   <img :src="$withBase('/imags/1647068947194.png')" alt="1647068947194">
+
+   
 
    以上，每次具有模板填充相关的需求都是一次折腾，而这种折腾可以通过环节规范和统一来优化，缩小该过程的时间，提高对接的效率。
 
@@ -446,7 +450,7 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 
 核心逻辑如下：
 
-![1647072599483](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647072599483.png)
+<img :src="$withBase('/imags/1647072599483.png')" alt="1647072599483">
 
 ### 组件的诞生历程
 
@@ -460,7 +464,7 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 
 ##### 核心逻辑
 
-![1647073251087](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647073251087.png)
+<img :src="$withBase('/imags/1647073251087.png')" alt="1647073251087">
 
 
 
@@ -514,7 +518,7 @@ return this.getExcelHistory(templeteId, fileType, year, month, day);
 
 ##### 核心逻辑
 
-![1647073956330](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1647073956330.png)
+<img :src="$withBase('/imags/1647073956330.png')" alt="1647073956330">
 
 ##### 核心代码
 
