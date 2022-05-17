@@ -9,7 +9,7 @@
 
 
 
-## 01 微信公众号App阅读模式
+## 微信公众号App阅读模式
 
 <font face="华文宋体" size="3">假如公众号的阅读体验可以选择为图书App，你会喜欢吗？</font>
 
@@ -63,7 +63,7 @@
 <img :src="$withBase('/imags/xcx.png')" alt="xcx">
 
 
-## 02 分布式博客云笔记
+## 分布式博客云笔记
 
 <font face="华文宋体" size="3">在工作的过程中，会被动、主动的学习很多的东西，而这个过程中产生的零散的知识点，如何记录、如何展示，对我个人产生了很大的影响，为了提高工作和学习的效率，我觉得，我需要一款安全的笔记软件。</font>
 
@@ -107,7 +107,7 @@
 >www.dglgd.com
 >```
 
-## 03 开发一款Maven插件
+## 开发一款Maven插件
 
 
 
@@ -400,7 +400,7 @@ https://github.com/sutinghu153/maven-plugin-gitcodes-count
 
 - 在IDEA中的maven插件管理工具中运行 ```count codes:count```
 
-## 04 模板填充组件
+## 模板填充组件
 
 ### 关于组件
 

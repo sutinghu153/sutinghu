@@ -25,12 +25,20 @@ module.exports = {
                     ['/collection/xm.md', '项目介绍']
                 ]
              },{
+                title:'Linux/Makefile',
+                //collapsable: true,
+                children: [
+                    ['/collection/linux.md', 'Linux'],
+					['/collection/makefile.md', 'Makefile']
+                ]
+             },{
                 title:'Linux系统开发',
                 //collapsable: true,
                 children: [
                     ['/collection/xtkf.md', 'IO-系统开发'],
 					['/collection/jcjtx.md', '进程间通信'],
-					['/collection/dxctx.md', 'Linux多线程']
+					['/collection/dxctx.md', 'Linux多线程'],
+					['/collection/netcode.md', '网络编程']
                 ]
              },{
                 title:'设计模式',
