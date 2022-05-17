@@ -32,6 +32,12 @@ module.exports = {
 					['/collection/makefile.md', 'Makefile']
                 ]
              },{
+                title:'C/C++/Java',
+                //collapsable: true,
+                children: [
+                    ['/collection/languagec.md', 'C']
+                ]
+             },{
                 title:'Linux系统开发',
                 //collapsable: true,
                 children: [
