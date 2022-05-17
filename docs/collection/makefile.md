@@ -139,7 +139,7 @@ VPATH = src:../headers #make 会按照这个顺序进行搜索
 ```
 
 - vpath
-  - vpath   ***pattern   directories*** 为符合模式 ***pattern*** 的文件指定搜索目录***directories***。
+  - vpath   ***pattern   directories*** 为符合模式 ***pattern*** 的文件指定搜索目录 ***directories*** 。
   - vpath ***pattern***
     清除符合模式 ***pattern*** 的文件的搜索目录。
   - vpath
