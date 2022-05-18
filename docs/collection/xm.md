@@ -688,6 +688,8 @@ return fileResult;
 
  互联网上提供文件（存储）和访问服务的（计算机），它们依照[FTP协议](https://baike.baidu.com/item/FTP协议)提供服务。 FTP是File Transfer Protocol（文件传输协议）。顾名思义，就是专门用来传输文件的协议。简单地说，支持FTP协议的服务器就是FTP服务器。 
 
+FTP服务分为服务器（Server）和客户机（Client）两个角色。FTP服务器使用的端口是21端口和20端口，21端口用于服务器和客户机建立命令的链路，20端口用于服务器向客户机建立数据链路。 
+
 ### FTP的作用
 
 1.  用来在两台计算机之间传输文件 
@@ -703,3 +705,559 @@ return fileResult;
 - FTP使用两个平行连接：控制连接和数据连接。控制连接在两主机间传送控制命令，如用户身份、口令、改变目录命令等。数据连接只用于传送数据。 
 - 在一个会话期间，FTP服务器必须维持用户状态，也就是说，和某一个用户的控制连接不能断开。另外，当用户在目录树中活动时，服务器必须追踪用户的当前目录，这样，FTP就限制了并发用户数量。 
 - FTP支持文件沿任意方向传输。当用户与一远程计算机建立连接后，用户可以获得一个远程文件也可以将一本地文件传输至远程机器。 
+
+### FTP服务的传输模式
+
+ FTP传输模式分别为主动模式和被动模式
+
+- 主动模式是服务器主动连接客户机并建立数据链路
+- 被动模式是服务器等待客户机建立数据链路
+
+<img :src="$withBase('/imags/1652858950516.png')" alt="1652858950516">
+
+<img :src="$withBase('/imags/1652858933230.png')" alt="1652858933230">
+
+### TCP/UDP协议
+
+>  [用大白话解释什么是Socket ](https://zhuanlan.zhihu.com/p/260139078) 
+
+#### UDP协议
+
+##### 特征
+
+- UDP是面向无连接的协议。
+
+- UDP使用数据报套接字(Datagram Socket)进行通信，因为数据报有长度，所以传输的消息有记录边界。
+
+- 应用进程发送的消息被封装到UDP数据报，UDP数据报被封装到IP数据报，最终的数据报被发送到目的地。
+- UDP缺乏可靠性，不能保证数据一定能送达，也不能保证数据被送达的频次和先后顺序。
+
+##### 流程
+
+> 客户端：socket()->bind()->sendto()->recvfrom()->close() //客户端可以不用bind()
+>
+> 
+>
+> 服务器：socket()->bind()->recvfrom()->sendto()->close()
+
+<img :src="$withBase('/imags/1652859122698.png')" alt="1652859122698">
+
+#### TCP协议
+
+##### 简介
+
+- TCP是面向连接的协议，建立连接的过程有三次握手和四次握手。
+- TCP使用流套接字(Stream Socket)进行通信，因为流没有长度，所以传输的消息没有记录边界。
+- 客户端使用TCP协议与服务器进行通信时，需要先建立连接，然后才能进行数据交换。
+- TCP提供了消息确认和重传机制，保证了传输的可靠性。
+- TCP提供了流量控制，流量控制的大小取决于接收缓冲区可用空间的大小。客户端发送一次数据，接收缓冲区可用空间变小。服务器接收一次数据，接收缓冲区可用空间变大。
+- TCP连接为全双工通信，而UDP既可以全双工通信，也可以使用别的通信模式。
+
+##### 连接模式
+
+通信的两种模式：SYN & ACK
+
+SYN：用来发送新信号
+
+ACK：用来返回确认信号
+
+##### 建立连接
+
+​	1.找个可以通话的手机(socket() )
+
+​	2.拨通对方号码并确定对方是自己要找的人（ connect() ）
+
+​	3.主动聊天（ send() 或 write() ）
+
+​	4.或者，接收对方的回话（ recv() 或read() ）
+
+​	5.通信结束后，双方说再见挂电话（close() ）
+
+##### 流程
+
+- 三次握手和四次握手主要发生在connect/accept阶段。
+
+客户端：socket()------------------->connect()->I/O操作->close()
+
+服务器：socket()->bind()->listen()->accept()->I/O操作->close()
+
+<img :src="$withBase('/imags/1652861088496.png')" alt="1652861088496">
+
+### FTP 被动模式服务端设计
+
+#### 流程设计
+
+<img :src="$withBase('/imags/1652860841466.png')" alt="1652860841466">
+
+#### 代码实现
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <dirent.h>
+#include <fcntl.h>
+
+#define N 256//文件名和命令名最长为256字节
+
+// 查看文件命令 
+void commd_ls(int);
+// 下载文件 
+void commd_get(int, char *);
+// 上传文件 
+void commd_put(int, char *);
+
+int main(int arg, char *argv[])
+{
+	
+    int ser_sockfd,cli_sockfd;// 服务端和客户端的套接字文件描述符 
+    struct sockaddr_in ser_addr,cli_addr;// 服务端和客户端的套接字文件结构体 
+    int ser_len, cli_len;//  结构体长度 
+    char commd [N];
+    bzero(commd,N);//将commd所指向的字符串的前N个字节置为0，包括'\0'
+
+    if((ser_sockfd=socket(AF_INET, SOCK_STREAM, 0) ) < 0)
+    {
+        printf("Sokcet Error!\n");
+        return -1;
+    }
+
+    bzero(&ser_addr,sizeof(ser_addr));
+    ser_addr.sin_family = AF_INET;
+    ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);//本地ip地址
+    ser_addr.sin_port = htons (8989);//转换成网络字节
+    ser_len = sizeof(ser_addr);
+    //将ip地址与套接字绑定
+    if((bind(ser_sockfd, (struct sockaddr *)&ser_addr, ser_len)) < 0)
+    {
+        printf("Bind Error!\n");
+        return -1;
+    }
+    //服务器端监听
+    if(listen(ser_sockfd, 5) < 0)
+    {
+        printf("Linsten Error!\n");
+        return -1;
+    }
+
+    bzero(&cli_addr, sizeof(cli_addr));
+    ser_len = sizeof(cli_addr);
+
+    while(1)
+    {
+        printf("server>");
+        //服务器端接受来自客户端的连接，返回一个套接字，此套接字为新建的一个，并将客户端的地址等信息存入cli_addr中
+        //原来的套接字仍处于监听中
+        if((cli_sockfd=accept(ser_sockfd, (struct sockaddr *)&cli_addr, &cli_len)) < 0)
+        {
+            printf("Accept Error!\n");
+            exit(1);
+        }
+        //由套接字接收数据时，套接字把接收的数据放在套接字缓冲区，再由用户程序把它们复制到用户缓冲区，然后由read函数读取
+        //write函数同理
+        if(read(cli_sockfd, commd, N) < 0)  //read函数从cli_sockfd中读取N个字节数据放入commd中
+        {
+            printf("Read Error!\n");
+            exit(1);
+        }
+
+        printf("recvd [ %s ]\n",commd);
+
+        if(strncmp(commd,"ls",2) == 0)
+        {
+            commd_ls(cli_sockfd);
+        }else if(strncmp(commd,"get", 3) == 0 )
+        {
+            commd_get(cli_sockfd, commd+4);
+        }else if(strncmp(commd, "put", 3) == 0)
+        {
+            commd_put(cli_sockfd, commd+4);
+        }else
+        {
+            printf("Error!Command Error!\n");
+        }
+    }
+
+    return 0;
+}
+/*
+**显示文件列表
+*/
+void commd_ls(int sockfd)
+{
+    DIR * mydir =NULL;
+    struct dirent *myitem = NULL;
+    char commd[N] ;
+    bzero(commd, N);
+    //opendir为用来打开参数name 指定的目录, 并返回DIR*形态的目录流
+    //mydir中存有相关目录的信息
+    if((mydir=opendir(".")) == NULL)
+    {
+        printf("OpenDir Error!\n");
+        exit(1);
+    }
+
+    while((myitem = readdir(mydir)) != NULL)//用来读取目录,返回是dirent结构体指针
+    {
+        if(sprintf(commd, myitem->d_name, N) < 0)//把文件名写入commd指向的缓冲区
+        {
+            printf("Sprintf Error!\n");
+            exit(1);
+        }
+
+        if(write(sockfd, commd, N) < 0 )//将commd缓冲区的内容发送会client
+        {
+            printf("Write Error!\n");
+            exit(1);
+        }
+    }
+
+    closedir(mydir);//关闭目录流
+    close(sockfd);
+
+    return ;
+}
+/*
+**实现文件的下载                            
+*/
+void commd_get(int sockfd, char *filename)
+{
+    int fd, nbytes;
+    char buffer[N];
+    bzero(buffer, N);
+
+    printf("get filename : [ %s ]\n",filename);
+    if((fd=open(filename, O_RDONLY)) < 0)//以只读的方式打开client要下载的文件
+    {
+        printf("Open file Error!\n");
+        buffer[0]='N';
+        if(write(sockfd, buffer, N) <0)
+        {
+            printf("Write Error!At commd_get 1\n");
+            exit(1);
+        }
+        return ;
+    }
+
+    buffer[0] = 'Y';    //此处标示出文件读取成功
+    if(write(sockfd, buffer, N) <0)
+    {
+        printf("Write Error! At commd_get 2!\n");
+        close(fd);
+        exit(1);
+    }
+
+    while((nbytes=read(fd, buffer, N)) > 0)//将文件内容读到buffer中
+    {
+        if(write(sockfd, buffer, nbytes) < 0)//将buffer发送回client
+        {
+            printf("Write Error! At commd_get 3!\n");
+            close(fd);
+            exit(1);
+        }
+    }
+
+    close(fd);
+    close(sockfd);
+
+    return ;
+}
+/*
+**实现文件的上传                            
+*/
+void commd_put(int sockfd, char *filename)
+{
+    int fd, nbytes;
+    char buffer[N];
+    bzero(buffer, N);
+
+    printf("get filename : [ %s ]\n",filename);
+    if((fd=open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0644)) < 0)//以只写的方式打开文件，若文件存在则清空，若文件不存在则新建文件
+    {
+        printf("Open file Error!\n");
+        return ;
+    }
+
+    while((nbytes=read(sockfd, buffer, N)) > 0)//将client发送的文件写入buffer
+    {
+        if(write(fd, buffer, nbytes) < 0)//将buffer中的内容写到文件中
+        {
+            printf("Write Error! At commd_put 1!\n");
+            close(fd);
+            exit(1);
+        }
+    }
+    close(fd);
+    close(sockfd);
+
+    return ;
+}
+```
+
+### FTP被动模式客户端设计
+
+#### 流程设计
+
+<img :src="$withBase('/imags/1652862681358.png')" alt="1652862681358">
+
+#### 代码实现
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+
+#define N 256
+
+void commd_help();
+void commd_exit();
+void commd_ls(struct sockaddr_in, char *);
+void commd_get(struct sockaddr_in , char *);
+void commd_put(struct sockaddr_in , char *);
+
+int main(int argc, char *argv[])
+{
+    char commd[N];
+    struct sockaddr_in addr;
+    int len;
+    bzero(&addr, sizeof(addr));     //将＆addr中的前sizeof（addr）字节置为0，包括'\0'
+    addr.sin_family = AF_INET;      //AF_INET代表TCP／IP协议
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1"); //将点间隔地址转换为网络字节顺序
+    addr.sin_port = htons(8989);    //转换为网络字节顺序
+    len = sizeof(addr);
+
+    while(1)
+    {
+        printf("ftp>");
+        bzero(commd,N);
+        //fgets函数从stdin流中读取N-1个字符放入commd中
+        if(fgets(commd,N,stdin) == NULL)
+        {
+            printf("Fgets Error!\n");
+            return -1;
+        }
+
+        commd[strlen(commd)-1]='\0';    //fgets函数读取的最后一个字符为换行符，此处将其替换为'\0'
+
+        printf("Input Command Is [ %s ]\n",commd);
+
+        if(strncmp(commd,"help",4) == 0) //比较两个字符串前4个字节，若相等则返回0
+        {
+            commd_help();
+        }else if(strncmp(commd, "exit",4) == 0)
+        {
+            commd_exit();
+            exit(0);   //结束进程
+        }else if(strncmp(commd, "ls" , 2) == 0)
+        {
+            commd_ls(addr, commd);
+        }else if(strncmp(commd, "get" , 3) == 0)
+        {
+            commd_get(addr, commd);
+        }else if(strncmp(commd, "put", 3) ==0 )
+        {
+            commd_put(addr, commd);
+        }else
+        {
+            printf("Command Is Error!Please Try Again!\n");
+        }
+
+    }
+    return 0;
+}
+/*
+**帮助信息
+*/
+void commd_help()
+{
+
+    printf("\n=---------------------欢迎使用FTP--------------------------|\n");
+    printf("|                                                            |\n");
+    printf("|            help:View all commands                          |\n");
+    printf("|                                                            |\n");
+    printf("|            exit:Disconnect                                 |\n");
+    printf("|                                                            |\n");
+    printf("|            ls : Displays a list of files for the FTP server|\n");
+    printf("|                                                            |\n");
+    printf("|            get <file>：Download files from FTP server      |\n");
+    printf("|                                                            |\n");
+    printf("|            put <file>:Transfer files to FTP server         |\n");
+    printf("|                                                            |\n");
+    printf("|------------------------------------------------------------|\n");
+
+    return ;
+}
+/*
+**退出FTP服务器
+*/
+void commd_exit()
+{
+    printf("Bye!\n");
+}
+/*
+**显示文件列表
+*/
+void commd_ls(struct sockaddr_in addr, char *commd)
+{
+    int sockfd;
+    //创建套接字
+    if((sockfd=socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("Socket Error!\n");
+        exit(1);
+    }
+
+    if(connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        printf("Connect Error!\n");
+        exit(1);
+    }
+    //将commd指向的内容写入到sockfd所指的文件中，此处即指套接字
+    if(write(sockfd, commd, N) < 0)
+    {
+        printf("Write Error!\n");
+        exit(1);
+    }
+
+    while(read(sockfd, commd, N) > 0)  //从sockfd中读取N字节内容放入commd中，
+    {                                   //返回值为读取的字节数
+        printf(" %s ",commd);
+    }
+    printf("\n");
+
+    close(sockfd);
+    return ;
+}
+/*
+**实现文件的下载                            
+*/
+void commd_get(struct sockaddr_in addr, char *commd)
+{
+    int fd;
+    int sockfd;
+    char buffer[N];
+    int nbytes;
+    //创建套接字，并进行错误检测
+    if((sockfd=socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("Socket Error!\n");
+        exit(1);
+    }
+    //connect函数用于实现客户端与服务端的连接,此处还进行了错误检测
+    if(connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        printf("Connect Error!\n");
+        exit(1);
+    }
+    //通过write函数向服务端发送数据
+    if(write(sockfd, commd, N) < 0)
+    {
+        printf("Write Error!At commd_get 1\n");
+        exit(1);
+    }
+    //利用read函数来接受服务器发来的数据
+    if(read(sockfd, buffer, N) < 0)
+    {
+        printf("Read Error!At commd_get 1\n");
+        exit(1);
+    }
+    //用于检测服务器端文件是否打开成功
+    if(buffer[0] =='N')
+    {
+        close(sockfd);
+        printf("Can't Open The File!\n");
+        return ;
+    }
+    //open函数创建一个文件，文件地址为(commd+4)，该地址从命令行输入获取
+    if((fd=open(commd+4, O_WRONLY|O_CREAT|O_TRUNC, 0644)) < 0)
+    {
+        printf("Open Error!\n");
+        exit(1);
+    }
+    //read函数从套接字中获取N字节数据放入buffer中，返回值为读取的字节数
+    while((nbytes=read(sockfd, buffer, N)) > 0)
+    {
+        //write函数将buffer中的内容读取出来写入fd所指向的文件，返回值为实际写入的字节数
+        if(write(fd, buffer, nbytes) < 0)
+        {
+            printf("Write Error!At commd_get 2");
+        }
+    }
+
+    close(fd);
+    close(sockfd);
+
+    return ;
+
+}
+/*
+**实现文件的上传                            
+*/
+void commd_put(struct sockaddr_in addr, char *commd)
+{
+    int fd;
+    int sockfd;
+    char buffer[N];
+    int nbytes;
+    //创建套接字
+    if((sockfd=socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("Socket Error!\n");
+        exit(1);
+    }
+    //客户端与服务端连接
+    if(connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        printf("Connect Error!\n");
+        exit(1);
+    }
+    //从commd中读取N字节数据，写入套接字中
+    if(write(sockfd, commd, N)<0)
+    {
+        printf("Wrtie Error!At commd_put 1\n");
+        exit(1);
+    }
+    //open函数从(commd+4)中，读取文件路径，以只读的方式打开
+    if((fd=open(commd+4, O_RDONLY)) < 0)
+    {
+        printf("Open Error!\n");
+        exit(1);
+    }
+    //从fd指向的文件中读取N个字节数据
+    while((nbytes=read(fd, buffer, N)) > 0)
+    {
+        //从buffer中读取nbytes字节数据，写入套接字中
+        if(write(sockfd, buffer, nbytes) < 0)
+        {
+            printf("Write Error!At commd_put 2");
+        }
+    }
+
+    close(fd);
+    close(sockfd);
+
+    return ;
+}
+```
+
+
+
+### 结果
+
+#### 执行help命令
+
+<img :src="$withBase('/imags/1652862363744.png')" alt="1652862363744">
+
+#### 执行ls命令
+
+<img :src="$withBase('/imags/1652862384118.png')" alt="1652862384118">
