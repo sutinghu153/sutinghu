@@ -35,7 +35,8 @@ module.exports = {
                 title:'C/C++/Java',
                 //collapsable: true,
                 children: [
-                    ['/collection/languagec.md', 'C']
+                    ['/collection/languagec.md', 'C'],
+					['/collection/languagejava.md', 'JAVA']
                 ]
              },{
                 title:'Linux系统开发',
