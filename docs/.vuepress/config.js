@@ -25,11 +25,12 @@ module.exports = {
                     ['/collection/xm.md', '项目介绍']
                 ]
              },{
-                title:'Linux/Makefile',
+                title:'Linux/Makefile/Shell',
                 //collapsable: true,
                 children: [
                     ['/collection/linux.md', 'Linux'],
-					['/collection/makefile.md', 'Makefile']
+					['/collection/makefile.md', 'Makefile'],
+					['/collection/shell.md', 'Shell']
                 ]
              },{
                 title:'C/C++/Java',
