@@ -25,19 +25,18 @@ module.exports = {
                     ['/collection/xm.md', '项目介绍']
                 ]
              },{
-                title:'Linux/Makefile/Shell',
-                //collapsable: true,
-                children: [
-                    ['/collection/linux.md', 'Linux'],
-					['/collection/makefile.md', 'Makefile'],
-					['/collection/shell.md', 'Shell']
-                ]
-             },{
                 title:'C/C++/Java',
                 //collapsable: true,
                 children: [
                     ['/collection/languagec.md', 'C'],
 					['/collection/languagejava.md', 'JAVA']
+                ]
+             },{
+                title:'Linux内核',
+                //collapsable: true,
+                children: [
+                    ['/collection/linuxorg.md', 'Linux源码及分析'],
+					['/collection/linuxjg.md', 'Linux内核架构']
                 ]
              },{
                 title:'Linux系统开发',
@@ -49,11 +48,12 @@ module.exports = {
 					['/collection/netcode.md', '网络编程']
                 ]
              },{
-                title:'设计模式',
+                title:'Linux/Makefile/Shell',
                 //collapsable: true,
                 children: [
-                    ['/collection/designcode.md', '设计模式-编码'],
-					['/collection/designfx.md', '设计模式-分析']
+                    ['/collection/linux.md', 'Linux'],
+					['/collection/makefile.md', 'Makefile'],
+					['/collection/shell.md', 'Shell']
                 ]
              },{
                 title:'数据结构',
@@ -61,6 +61,41 @@ module.exports = {
                 children: [
                     ['/collection/dscode.md', '仿JKD实现数据结构'],
 					['/collection/dsanalys.md', '数据结构分析']
+                ]
+             },{
+                title:'设计模式',
+                //collapsable: true,
+                children: [
+                    ['/collection/designcode.md', '设计模式-编码'],
+					['/collection/designfx.md', '设计模式-分析']
+                ]
+             },{
+                title:'计算机视觉',
+                //collapsable: true,
+                children: [
+                    ['/collection/image.md', '数字图像处理']
+                ]
+             },{
+                title:'计算机基础',
+                //collapsable: true,
+                children: [
+                    ['/collection/os.md', '操作系统'],
+					['/collection/net.md', '计算机网络']
+                ]
+             },{
+                title:'中间件',
+                //collapsable: true,
+                children: [
+                    ['/collection/mvn.md', 'Maven'],
+					['/collection/kafka.md', 'Kafka'],
+					['/collection/ElasticSearch.md', 'ElasticSearch']
+                ]
+             },{
+                title:'算法',
+                //collapsable: true,
+                children: [
+                    ['/collection/math.md', '算法分析'],
+					['/collection/mathdo.md', '算法实践']
                 ]
              },{
                 title:'常用命令',
@@ -80,14 +115,6 @@ module.exports = {
                 //collapsable: true,
                 children: [
                     ['/collection/xtbs.md', 'Linux系统一站式部署']
-                ]
-             },{
-                title:'中间件',
-                //collapsable: true,
-                children: [
-                    ['/collection/mvn.md', 'Maven'],
-					['/collection/kafka.md', 'Kafka'],
-					['/collection/ElasticSearch.md', 'ElasticSearch']
                 ]
              }
 		]
