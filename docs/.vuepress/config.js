@@ -25,11 +25,13 @@ module.exports = {
                     ['/collection/xm.md', '项目介绍']
                 ]
              },{
-                title:'C/C++/Java',
+                title:'C/C++/Java/Golang',
                 //collapsable: true,
                 children: [
                     ['/collection/languagec.md', 'C'],
-					['/collection/languagejava.md', 'JAVA']
+					['/collection/qt.md', 'Qt'],
+					['/collection/languagejava.md', 'JAVA'],
+					['/collection/go.md', 'Golang']
                 ]
              },{
                 title:'Linux内核',
@@ -54,6 +56,13 @@ module.exports = {
                     ['/collection/linux.md', 'Linux'],
 					['/collection/makefile.md', 'Makefile'],
 					['/collection/shell.md', 'Shell']
+                ]
+             },{
+                title:'区块链',
+                //collapsable: true,
+                children: [
+                    ['/collection/qklytf.md', '以太坊（ Ethereum ）'],
+					['/collection/qklgssf.md', '共识算法']
                 ]
              },{
                 title:'数据结构',

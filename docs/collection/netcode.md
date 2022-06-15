@@ -592,3 +592,4 @@ in_port_t		TCP或UDP端口，一般为uint16_t	<netinet/in.h>
 2. 如果还没有准备好数据，会得到一个EWouldBLOCK错误信号
 3. 数据准备好之后，开始真正执行recvfrom拉取数据
    1. 轮询会极大的消耗CPU时间，所以这种模型极少用到
+

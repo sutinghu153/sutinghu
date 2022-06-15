@@ -105,10 +105,33 @@ drwxr-xr-x.  80 root root        8192 Mar 25 14:24 etc
 **读(r)、写(w)和执行(x)**，除了用 r、w 和 x 表示以外，
 我们也可以使用二进制数表示，三种权限就可以使用 3 位二进制数来表示，一种权限对应一个二进制位。a、u、g 和 o 表示文件的归属关系，用=、+和-表示文件权限的变化。
 
-![1652703934575](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1652703934575.png)
+<img :src="$withBase('/imags/1652703934575.png')" alt="1652703934575">
 
-![1652703953464](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1652703953464.png)
+<img :src="$withBase('/imags/1652703953464.png')" alt="1652703953464">
 
-![1652703965345](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1652703965345.png)
+<img :src="$withBase('/imags/1652703965345.png')" alt="1652703965345">
 
-![1652704001360](C:\Users\MSI\AppData\Roaming\Typora\typora-user-images\1652704001360.png)
+<img :src="$withBase('/imags/1652704001360.png')" alt="1652704001360">
+
+## 关于文件权限的指令
+
+###  chown指令
+
+功能：修改文件的拥有者
+格式：chown [参数] 用户名 文件名 
+
+###  chgrp指令
+
+功能：修改文件或目录的所属组
+格式：chgrp [参数] 用户组名 文件名
+常用选项：-R 递归修改文件或目录的所属组 
+
+###  umask指令
+
+**功能**：
+查看或修改文件掩码 
+
+###  umask的作用
+
+超级用户默认掩码值为0022，普通用户默认为0002 
+
