@@ -31,6 +31,7 @@ module.exports = {
                     ['/collection/languagec.md', 'C'],
 					['/collection/qt.md', 'Qt'],
 					['/collection/languagejava.md', 'JAVA'],
+					['/collection/springttt.md', 'spring微服务问题'],
 					['/collection/go.md', 'Golang']
                 ]
              },{
@@ -97,6 +98,7 @@ module.exports = {
                 children: [
                     ['/collection/mvn.md', 'Maven'],
 					['/collection/kafka.md', 'Kafka'],
+					['/collection/Rediss.md', 'Redis'],
 					['/collection/ElasticSearch.md', 'ElasticSearch']
                 ]
              },{
